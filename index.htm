@@ -3,70 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Baixas de Estoque - Dinâmico</title>
+    <title>Kanban Baixas de Estoque - Dinâmico</title>
     <style>
-        /* Estilos Gerais (Mantendo o visual moderno anterior) */
-        :root { /* ... variáveis CSS ... */ }
-        html { box-sizing: border-box; }
-        *, *:before, *:after { box-sizing: inherit; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 10px; color: #343a40; line-height: 1.5; min-width: fit-content; }
+        /* Estilos Gerais */
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+            --text-color: #343a40;
+            --white: #ffffff;
+            --border-color: #dee2e6;
+            --shadow-sm: rgba(0, 0, 0, 0.08);
+            --shadow-md: rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--light-gray);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            line-height: 1.5;
+        }
 
         /* Header */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #dee2e6;}
-        .header h1 { text-align: left; color: #495057; margin: 0; font-weight: 500; font-size: 1.6rem; flex-grow: 1; }
-        .header img { max-height: 45px; width: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);}
+        .header h1 { text-align: left; color: #495057; margin: 0; font-weight: 500; font-size: 1.8rem; flex-grow: 1; }
+        .header img { max-height: 50px; width: auto; }
 
         button { cursor: pointer; transition: background-color 0.2s ease; }
         .container { max-width: 100%; margin: 0 auto; }
-        .section { background-color: #ffffff; padding: 15px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .section { background-color: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px var(--shadow-sm); margin-bottom: 25px; }
 
         /* Filtro */
-        .filter-container { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .filter-container label { font-weight: 600; color: #6c757d; font-size: 0.9rem; }
-        .filter-container select, .filter-container input, .filter-container button { padding: 8px 12px; border-radius: 4px; border: 1px solid #dee2e6; font-size: 13px; }
-        .filter-container button { background-color: #007bff; color: white; border: none; }
+        .filter-container { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .filter-container label { font-weight: 600; color: var(--dark-gray); }
+        .filter-container select, .filter-container button { padding: 10px 15px; border-radius: 5px; border: 1px solid var(--border-color); font-size: 14px; }
+        .filter-container button { background-color: var(--primary-color); color: var(--white); border: none; }
         .filter-container button:hover { background-color: #0056b3; }
-        /* MUDANÇA: Estilo para o botão de tela inteira (posicionado à direita) */
-        #fullscreen-btn { margin-left: auto; background-color: #6c757d; } /* Cinza */
-        #fullscreen-btn:hover { background-color: #5a6268; }
 
-        /* MUDANÇA: Wrapper Kanban Board - VOLTOU AO NORMAL */
-        .kanban-board-wrapper {
-             overflow-x: auto;
-             padding-bottom: 10px; /* Restaurado padding inferior */
-             /* transform: rotate(180deg); REMOVIDO */
-             /* direction: rtl; REMOVIDO */
-        }
-        /* MUDANÇA: Kanban Board - VOLTOU AO NORMAL */
-        .kanban-board {
-            display: flex;
-            gap: 15px;
-            min-height: 400px;
-            width: max-content;
-             /* transform: rotate(180deg); REMOVIDO */
-             /* direction: ltr; REMOVIDO */
-        }
-        .kanban-column { background-color: #e9ecef; border-radius: 5px; padding: 12px; width: 280px; flex-shrink: 0; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .kanban-column h2 { font-size: 0.9rem; margin: 0 0 12px 0; padding-bottom: 8px; border-bottom: 1px solid #dee2e6; text-align: center; color: #343a40; font-weight: 600; }
-        #coluna-concluido { background-color: #e6f9f0; border-top: 3px solid #28a745; }
-        #coluna-rejeitado { background-color: #fdeded; border-top: 3px solid #dc3545; }
+        /* Quadro Kanban */
+        .kanban-board-wrapper { overflow-x: auto; padding: 10px 0; margin: 0 -20px; padding: 0 20px 15px 20px; }
+        .kanban-board { display: flex; gap: 20px; min-height: 450px; width: max-content; }
+        .kanban-column { background-color: var(--medium-gray); border-radius: 6px; padding: 15px; width: 300px; flex-shrink: 0; display: flex; flex-direction: column; box-shadow: 0 1px 3px var(--shadow-sm); }
+        .kanban-column h2 { font-size: 1rem; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); text-align: center; color: var(--text-color); font-weight: 600; }
+        #coluna-concluido { background-color: #e6f9f0; border-top: 4px solid var(--success-color); }
+        #coluna-rejeitado { background-color: #fdeded; border-top: 4px solid var(--danger-color); }
 
         /* Card (Link <a>) */
-        .kanban-card { display: block; text-decoration: none; color: inherit; background-color: #ffffff; border-radius: 4px; padding: 12px 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 0.8rem; border-left: 4px solid #007bff; transition: box-shadow 0.2s ease, transform 0.2s ease; }
+        .kanban-card { display: block; text-decoration: none; color: inherit; background-color: var(--white); border-radius: 4px; padding: 12px 15px; margin-bottom: 12px; box-shadow: 0 2px 4px var(--shadow-md); font-size: 0.8rem; border-left: 4px solid var(--primary-color); transition: box-shadow 0.2s ease, transform 0.2s ease; }
         .kanban-card:hover { box-shadow: 0 5px 10px rgba(0,0,0,0.15); transform: translateY(-2px); }
-        .kanban-card.rejeitado-card { border-left-color: #dc3545; }
-        .kanban-card.concluido-card { border-left-color: #28a745; }
+        .kanban-card.rejeitado-card { border-left-color: var(--danger-color); }
+        .kanban-card.concluido-card { border-left-color: var(--success-color); }
         .kanban-card strong { color: #495057; font-weight: 500; display: inline-block; min-width: 65px; }
         .kanban-card .info-line { margin-bottom: 4px; }
-        .kanban-card .comentarios { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-style: italic; color: #6c757d; font-size: 0.75rem; white-space: pre-wrap; word-break: break-word; }
-        .kanban-card small { color: #6c757d; font-size: 0.7rem; display: block; margin-top: 6px; text-align: right; }
+        .kanban-card .comentarios { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-style: italic; color: var(--dark-gray); font-size: 0.75rem; white-space: pre-wrap; word-break: break-word; }
+        .kanban-card small { color: var(--dark-gray); font-size: 0.7rem; display: block; margin-top: 6px; text-align: right; }
 
         /* Loading e Update Time */
-        .loading { text-align: center; font-style: italic; color: #6c757d; padding: 40px 0; }
-        .update-time { margin-top: 15px; font-size: 0.75rem; color: #6c757d; text-align: center; }
+        .loading { text-align: center; font-style: italic; color: var(--dark-gray); padding: 50px 0; }
+        .update-time { margin-top: 20px; font-size: 0.8rem; color: var(--dark-gray); text-align: center; }
 
-        /* Media Query */
-        @media (max-width: 480px) { /* ... (igual antes) ... */ }
+        /* Media Query simples */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .header h1 { font-size: 1.5rem; }
+            .header img { max-height: 40px; }
+            .section { padding: 15px; margin-bottom: 20px; }
+            .filter-container { gap: 10px; }
+            .filter-container select, .filter-container button { width: 100%; box-sizing: border-box; }
+            .kanban-board-wrapper { margin: 0 -10px; padding: 0 10px 10px 10px; }
+            .kanban-column { width: 260px; min-width: 260px; padding: 10px; }
+            .kanban-card { padding: 10px; font-size: 0.75rem; }
+        }
     </style>
 </head>
 <body>
@@ -77,31 +88,16 @@
         </div>
 
         <div class="section filter-container">
-            <label for="unidadeFiltro">Unidade:</label>
+            <label for="unidadeFiltro">Filtrar por Unidade:</label>
             <select id="unidadeFiltro">
                 <option value="todas">-- Todas --</option>
                 <option value="ABC">ABC</option><option value="TCV">TCV</option><option value="TBL">TBL</option>
                 <option value="TBE">TBE</option><option value="API">API</option><option value="TPA">TPA</option>
                 <option value="TPH">TPH</option><option value="TSJ">TSJ</option><option value="TCA">TCA</option>
                 <option value="TCG">TCG</option><option value="MCD">MCD</option>
-            </select>
-
-            <label for="mesFiltro">Mês:</label>
-            <select id="mesFiltro">
-                <option value="todos">-- Todos --</option>
-                 <option value="1">Jan</option> <option value="2">Fev</option> <option value="3">Mar</option>
-                 <option value="4">Abr</option> <option value="5">Mai</option> <option value="6">Jun</option>
-                 <option value="7">Jul</option> <option value="8">Ago</option> <option value="9">Set</option>
-                 <option value="10">Out</option> <option value="11">Nov</option> <option value="12">Dez</option>
-            </select>
-
-            <label for="anoFiltro">Ano:</label>
-            <input type="number" id="anoFiltro" min="2020" max="2099" placeholder="Ano">
-
-            <button onclick="aplicarFiltros()">Filtrar</button>
-            <button onclick="buscarEAtualizarKanban()">Atualizar Dados</button>
+                </select>
+            <button onclick="buscarEAtualizarKanban()">Atualizar</button>
             <span class="loading" id="loadingSpinner" style="display: none; margin-left: auto;">🔄</span>
-            <button id="fullscreen-btn" onclick="toggleFullScreen()" title="Alternar Tela Inteira">Tela Inteira</button>
         </div>
 
         <div class="loading" id="loadingMessage" style="display: none;">Carregando dados do Kanban...</div>
@@ -121,33 +117,36 @@
         <p class="update-time"><small>Última atualização: <span id="lastUpdateTime">Nunca</span></small></p>
     </div>
 
-<script>
-        const flowUrl = 'https://defaultaf73075ee5864d09b8b3d44b758089.52.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b42da973b6334102a90433cb65b74dce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hvnPf8RyBdTS-ILDY5bE6Rle3Db2HpItaoaDX_M1Beg'; // <<< IMPORTANTE
+    <script>
+        const flowUrl = 'https://defaultaf73075ee5864d09b8b3d44b758089.52.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b42da973b6334102a90433cb65b74dce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hvnPf8RyBdTS-ILDY5bE6Rle3Db2HpItaoaDX_M1Beg'; // <<< IMPORTANTE: Cole sua URL aqui
 
-        const mapaColunas = { /* ... (igual antes) ... */ };
-        let todasSolicitacoes = []; // Guarda todos os dados recebidos do fluxo
+        const mapaColunas = {
+            'Início do Processo': 'coluna-solicitado',
+            'Aprovação Prevenção de Perdas': 'coluna-aprovacao-pp',
+            'Aprovação Logistica Corporativa': 'coluna-aprovacao-log',
+            'Aprovação Diretoria Financeira': 'coluna-aprovacao-fin',
+            'Baixa CPD': 'coluna-baixa-cpd',
+            'Processo Finalizado e Notificado': 'coluna-concluido'
+        };
 
         async function buscarEAtualizarKanban() {
-            // ... (Lógica para buscar dados do flowUrl - IGUAL A ANTES) ...
-            // Mas agora, guarda os dados recebidos na variável global
             const loadingMessage = document.getElementById('loadingMessage');
             const loadingSpinner = document.getElementById('loadingSpinner');
             const kanbanWrapper = document.querySelector('.kanban-board-wrapper');
             loadingMessage.style.display = 'block'; loadingSpinner.style.display = 'inline';
             kanbanWrapper.style.display = 'none';
 
-             try {
+            try {
                 const response = await fetch(flowUrl);
                 if (!response.ok) throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
-                const data = await response.json();
-                if (!Array.isArray(data)) {
+                const solicitacoes = await response.json();
+                if (!Array.isArray(solicitacoes)) {
                      throw new Error('Formato de dados inválido (esperava lista).');
                 }
-                todasSolicitacoes = data; // GUARDA OS DADOS AQUI
 
                 limparColunasKanban();
-                desenharCardsKanban(todasSolicitacoes); // Desenha todos inicialmente
-                aplicarFiltros(); // Aplica os filtros atuais (unidade E data)
+                desenharCardsKanban(solicitacoes);
+                filtrarUnidade(); // Chama o filtro após desenhar
                 document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString('pt-BR');
                 loadingMessage.style.display = 'none';
 
@@ -162,10 +161,14 @@
             }
         }
 
-        function limparColunasKanban() { /* ... (igual antes) ... */ }
-        function desenharCardsKanban(solicitacoes) { /* ... (igual antes, cria os links <a>) ... */
+        function limparColunasKanban() {
+             document.querySelectorAll('.kanban-column').forEach(coluna => {
+                coluna.querySelectorAll('.kanban-card').forEach(card => card.remove());
+            });
+        }
+
+        function desenharCardsKanban(solicitacoes) {
              if (!Array.isArray(solicitacoes)) return;
-             limparColunasKanban(); // Limpa antes de redesenhar
 
             solicitacoes.forEach(sol => {
                 let colunaId;
@@ -182,8 +185,6 @@
                     const cardLink = document.createElement('a');
                     cardLink.className = 'kanban-card';
                     cardLink.setAttribute('data-unidade', sol.Unidade || 'N/A');
-                     // MUDANÇA: Guarda o timestamp original para o filtro de data
-                    cardLink.setAttribute('data-timestamp', sol.Timestamp || '');
                     cardLink.href = sol.UrlHtmlSolicitacao || '#';
                     cardLink.target = '_blank';
 
@@ -195,6 +196,7 @@
 
                     const comentariosSanitizados = (sol.Comentarios || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+                    // Removida a linha de Status
                     cardLink.innerHTML = `
                         <div class="info-line"><strong>ID:</strong> ${sol.ID_Solicitacao || 'N/A'}</div>
                         <div class="info-line"><strong>Unidade:</strong> ${sol.Unidade || 'N/A'}</div>
@@ -210,71 +212,26 @@
             });
         }
 
-        // *** NOVA FUNÇÃO COMBINADA PARA APLICAR FILTROS ***
-        function aplicarFiltros() {
+        // *** FUNÇÃO DE FILTRO CORRIGIDA ***
+        function filtrarUnidade() {
             const selectUnidade = document.getElementById('unidadeFiltro');
             const unidadeSelecionada = selectUnidade.value;
-
-            const selectMes = document.getElementById('mesFiltro');
-            const mesSelecionado = selectMes.value; // Será "todos", "1", "2", ..., "12"
-
-            const inputAno = document.getElementById('anoFiltro');
-            const anoSelecionado = inputAno.value; // Será string vazia ou o ano digitado
-
-            const cards = document.querySelectorAll('.kanban-card');
+            const cards = document.querySelectorAll('.kanban-card'); // Seleciona os links <a>
 
             cards.forEach(card => {
-                const unidadeCard = card.getAttribute('data-unidade');
-                const timestampCard = card.getAttribute('data-timestamp'); // Pega o timestamp original
+                const unidadeCard = card.getAttribute('data-unidade'); // Pega do atributo data-unidade
 
-                // --- Lógica de Filtro ---
-                let mostrarCard = true; // Começa assumindo que vai mostrar
-
-                // 1. Filtro de Unidade
-                if (unidadeSelecionada !== 'todas' && (!unidadeCard || unidadeCard.trim().toUpperCase() !== unidadeSelecionada.trim().toUpperCase())) {
-                    mostrarCard = false; // Esconde se a unidade não bater (e não for "todas")
+                // Compara ignorando maiúsculas/minúsculas e espaços extras
+                if (unidadeSelecionada === 'todas' || (unidadeCard && unidadeCard.trim().toUpperCase() === unidadeSelecionada.trim().toUpperCase())) {
+                    card.style.display = 'block'; // Mostra
+                } else {
+                    card.style.display = 'none'; // Esconde
                 }
-
-                // 2. Filtro de Data (Mês e Ano) - Só aplica se ambos estiverem selecionados/preenchidos
-                if (mostrarCard && mesSelecionado !== 'todos' && anoSelecionado && timestampCard) {
-                    try {
-                        const dataCard = new Date(timestampCard);
-                        if (!isNaN(dataCard.getTime())) {
-                            const mesCard = dataCard.getMonth() + 1; // getMonth() é 0-11, então +1
-                            const anoCard = dataCard.getFullYear();
-
-                            // Compara mês E ano
-                            if (mesCard.toString() !== mesSelecionado || anoCard.toString() !== anoSelecionado) {
-                                mostrarCard = false; // Esconde se mês OU ano não baterem
-                            }
-                        } else {
-                             // Se a data no card for inválida, esconde se um filtro de data estiver ativo
-                             mostrarCard = false;
-                        }
-                    } catch(e) {
-                         console.warn("Erro ao processar data do card para filtro:", timestampCard, e);
-                         mostrarCard = false; // Esconde em caso de erro na data
-                    }
-                } else if (mostrarCard && (mesSelecionado !== 'todos' || anoSelecionado) && !timestampCard) {
-                     // Se um filtro de data está ativo mas o card não tem data, esconde
-                     mostrarCard = false;
-                }
-
-
-                // --- Aplica Visibilidade ---
-                card.style.display = mostrarCard ? 'block' : 'none';
             });
         }
-        // *** FIM DA NOVA FUNÇÃO ***
+        // *** FIM DA FUNÇÃO CORRIGIDA ***
 
-        // *** REMOVIDO: function filtrarUnidade() { ... } ***
-
-        // Listener para aplicar filtros quando qualquer um deles mudar
-        document.getElementById('unidadeFiltro').addEventListener('change', aplicarFiltros);
-        document.getElementById('mesFiltro').addEventListener('change', aplicarFiltros);
-        document.getElementById('anoFiltro').addEventListener('input', aplicarFiltros); // 'input' reage enquanto digita
-
-        // Carrega os dados iniciais ao carregar a página
+        document.getElementById('unidadeFiltro').addEventListener('change', filtrarUnidade);
         document.addEventListener('DOMContentLoaded', buscarEAtualizarKanban);
     </script>
 
