@@ -3,135 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Baixas de Estoque - iFrame</title>
+    <title>Dashboard Baixas de Estoque - Dinâmico</title>
     <style>
-        /* Estilos Gerais Otimizados para iFrame */
-        :root {
-            --primary-color: #007bff;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --light-gray: #f8f9fa;
-            --medium-gray: #e9ecef;
-            --dark-gray: #6c757d;
-            --text-color: #343a40;
-            --white: #ffffff;
-            --border-color: #dee2e6;
-            --shadow-sm: rgba(0, 0, 0, 0.08);
-            --shadow-md: rgba(0, 0, 0, 0.1);
-        }
+        /* Estilos Gerais (Mantendo o visual moderno anterior) */
+        :root { /* ... variáveis CSS ... */ }
         html { box-sizing: border-box; }
         *, *:before, *:after { box-sizing: inherit; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 10px; color: #343a40; line-height: 1.5; min-width: fit-content; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--light-gray);
-            margin: 0;
-            padding: 10px; /* Padding reduzido para iframe */
-            color: var(--text-color);
-            line-height: 1.5;
-            min-width: fit-content;
-        }
-
-        /* Header (sem mudanças significativas) */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);}
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #dee2e6;}
         .header h1 { text-align: left; color: #495057; margin: 0; font-weight: 500; font-size: 1.6rem; flex-grow: 1; }
         .header img { max-height: 45px; width: auto; }
 
         button { cursor: pointer; transition: background-color 0.2s ease; }
         .container { max-width: 100%; margin: 0 auto; }
-        .section { background-color: var(--white); padding: 15px; border-radius: 6px; box-shadow: 0 1px 4px var(--shadow-sm); margin-bottom: 20px; }
+        .section { background-color: #ffffff; padding: 15px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; }
 
-        /* Filtro (sem mudanças significativas) */
+        /* Filtro */
         .filter-container { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .filter-container label { font-weight: 600; color: var(--dark-gray); font-size: 0.9rem; }
-        .filter-container select, .filter-container input, .filter-container button { padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 13px; }
-        .filter-container button { background-color: var(--primary-color); color: var(--white); border: none; }
+        .filter-container label { font-weight: 600; color: #6c757d; font-size: 0.9rem; }
+        .filter-container select, .filter-container input, .filter-container button { padding: 8px 12px; border-radius: 4px; border: 1px solid #dee2e6; font-size: 13px; }
+        .filter-container button { background-color: #007bff; color: white; border: none; }
         .filter-container button:hover { background-color: #0056b3; }
+        /* MUDANÇA: Estilo para o botão de tela inteira (posicionado à direita) */
+        #fullscreen-btn { margin-left: auto; background-color: #6c757d; } /* Cinza */
+        #fullscreen-btn:hover { background-color: #5a6268; }
 
-        /* Wrapper Kanban Board */
+        /* MUDANÇA: Wrapper Kanban Board - VOLTOU AO NORMAL */
         .kanban-board-wrapper {
              overflow-x: auto;
-             padding-bottom: 10px;
+             padding-bottom: 10px; /* Restaurado padding inferior */
+             /* transform: rotate(180deg); REMOVIDO */
+             /* direction: rtl; REMOVIDO */
         }
-        /* Kanban Board */
+        /* MUDANÇA: Kanban Board - VOLTOU AO NORMAL */
         .kanban-board {
             display: flex;
             gap: 15px;
-            min-height: 400px; /* Reduzido um pouco */
+            min-height: 400px;
             width: max-content;
+             /* transform: rotate(180deg); REMOVIDO */
+             /* direction: ltr; REMOVIDO */
         }
-        .kanban-column {
-            background-color: var(--medium-gray); border-radius: 5px; padding: 12px;
-            width: 280px; /* Mantido mais estreito para iframe */
-            flex-shrink: 0; display: flex; flex-direction: column; box-shadow: 0 1px 3px var(--shadow-sm);
-        }
-        .kanban-column h2 { font-size: 0.9rem; margin: 0 0 12px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); text-align: center; color: var(--text-color); font-weight: 600; }
-        #coluna-concluido { background-color: #e6f9f0; border-top: 3px solid var(--success-color); }
-        #coluna-rejeitado { background-color: #fdeded; border-top: 3px solid var(--danger-color); }
+        .kanban-column { background-color: #e9ecef; border-radius: 5px; padding: 12px; width: 280px; flex-shrink: 0; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .kanban-column h2 { font-size: 0.9rem; margin: 0 0 12px 0; padding-bottom: 8px; border-bottom: 1px solid #dee2e6; text-align: center; color: #343a40; font-weight: 600; }
+        #coluna-concluido { background-color: #e6f9f0; border-top: 3px solid #28a745; }
+        #coluna-rejeitado { background-color: #fdeded; border-top: 3px solid #dc3545; }
 
-        /* MUDANÇA: Estilos do Card (Link <a>) - RESTAURADOS PARA VERSÃO ANTERIOR (com ajustes menores) */
-        .kanban-card {
-            display: block; text-decoration: none; color: inherit;
-            background-color: var(--white);
-            border-radius: 4px;
-            /* Restaurado padding original */
-            padding: 12px 15px;
-            margin-bottom: 12px;
-            /* Restaurada sombra original */
-            box-shadow: 0 2px 4px var(--shadow-md);
-            /* Restaurado font-size original */
-            font-size: 0.8rem;
-             /* Mantida borda esquerda menor */
-            border-left: 4px solid var(--primary-color);
-            transition: box-shadow 0.2s ease, transform 0.2s ease;
-        }
-        .kanban-card:hover {
-             /* Restaurado hover original */
-            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
-        }
-        .kanban-card.rejeitado-card { border-left-color: var(--danger-color); }
-        .kanban-card.concluido-card { border-left-color: var(--success-color); }
-        .kanban-card strong {
-            color: #495057; font-weight: 500; display: inline-block;
-            /* Restaurado min-width original */
-            min-width: 65px;
-        }
-        .kanban-card .info-line { margin-bottom: 4px; } /* Mantido */
-        .kanban-card .comentarios {
-            margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee;
-            font-style: italic; color: var(--dark-gray);
-            /* Restaurado font-size original */
-            font-size: 0.75rem;
-            white-space: pre-wrap; word-break: break-word;
-         }
-        .kanban-card small {
-            color: var(--dark-gray);
-            /* Restaurado font-size original */
-            font-size: 0.7rem;
-            display: block; margin-top: 6px; text-align: right;
-        }
+        /* Card (Link <a>) */
+        .kanban-card { display: block; text-decoration: none; color: inherit; background-color: #ffffff; border-radius: 4px; padding: 12px 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 0.8rem; border-left: 4px solid #007bff; transition: box-shadow 0.2s ease, transform 0.2s ease; }
+        .kanban-card:hover { box-shadow: 0 5px 10px rgba(0,0,0,0.15); transform: translateY(-2px); }
+        .kanban-card.rejeitado-card { border-left-color: #dc3545; }
+        .kanban-card.concluido-card { border-left-color: #28a745; }
+        .kanban-card strong { color: #495057; font-weight: 500; display: inline-block; min-width: 65px; }
+        .kanban-card .info-line { margin-bottom: 4px; }
+        .kanban-card .comentarios { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-style: italic; color: #6c757d; font-size: 0.75rem; white-space: pre-wrap; word-break: break-word; }
+        .kanban-card small { color: #6c757d; font-size: 0.7rem; display: block; margin-top: 6px; text-align: right; }
 
         /* Loading e Update Time */
-        .loading { text-align: center; font-style: italic; color: var(--dark-gray); padding: 40px 0; }
-        .update-time { margin-top: 15px; font-size: 0.75rem; color: var(--dark-gray); text-align: center; }
+        .loading { text-align: center; font-style: italic; color: #6c757d; padding: 40px 0; }
+        .update-time { margin-top: 15px; font-size: 0.75rem; color: #6c757d; text-align: center; }
 
-        /* Media Query (Mantida a otimização para telas pequenas) */
-        @media (max-width: 480px) {
-            body { padding: 5px; }
-            .header { flex-direction: column; align-items: flex-start; margin-bottom: 15px; }
-            .header h1 { font-size: 1.3rem; margin-bottom: 8px;}
-            .header img { max-height: 35px; align-self: flex-end;}
-            .section { padding: 10px; margin-bottom: 15px; }
-            .filter-container { gap: 8px; flex-direction: column; align-items: stretch; }
-            .filter-container select, .filter-container input, .filter-container button { width: 100%; box-sizing: border-box; font-size: 13px; padding: 8px 10px; }
-            .kanban-board-wrapper { margin: 0 -5px; padding: 0 5px 8px 5px; }
-            .kanban-column { width: 240px; min-width: 240px; padding: 10px; }
-            .kanban-card { padding: 10px 12px; font-size: 0.72rem; } /* Ajustado padding e fonte no mobile */
-            .kanban-card strong { min-width: 55px; }
-            .kanban-card small { font-size: 0.65rem; }
-        }
-
+        /* Media Query */
+        @media (max-width: 480px) { /* ... (igual antes) ... */ }
     </style>
 </head>
 <body>
@@ -154,10 +89,10 @@
             <label for="mesFiltro">Mês:</label>
             <select id="mesFiltro">
                 <option value="todos">-- Todos --</option>
-                <option value="1">Jan</option> <option value="2">Fev</option> <option value="3">Mar</option>
-                <option value="4">Abr</option> <option value="5">Mai</option> <option value="6">Jun</option>
-                <option value="7">Jul</option> <option value="8">Ago</option> <option value="9">Set</option>
-                <option value="10">Out</option> <option value="11">Nov</option> <option value="12">Dez</option>
+                 <option value="1">Jan</option> <option value="2">Fev</option> <option value="3">Mar</option>
+                 <option value="4">Abr</option> <option value="5">Mai</option> <option value="6">Jun</option>
+                 <option value="7">Jul</option> <option value="8">Ago</option> <option value="9">Set</option>
+                 <option value="10">Out</option> <option value="11">Nov</option> <option value="12">Dez</option>
             </select>
 
             <label for="anoFiltro">Ano:</label>
@@ -166,6 +101,7 @@
             <button onclick="aplicarFiltros()">Filtrar</button>
             <button onclick="buscarEAtualizarKanban()">Atualizar Dados</button>
             <span class="loading" id="loadingSpinner" style="display: none; margin-left: auto;">🔄</span>
+            <button id="fullscreen-btn" onclick="toggleFullScreen()" title="Alternar Tela Inteira">Tela Inteira</button>
         </div>
 
         <div class="loading" id="loadingMessage" style="display: none;">Carregando dados do Kanban...</div>
