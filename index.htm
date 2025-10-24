@@ -3,55 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Baixas de Estoque - Dinâmico</title>
+    <title>Dashboard Baixas de Estoque - iFrame</title>
     <style>
-        /* [COLE AQUI TODO O CSS DA VERSÃO ANTERIOR - SEM MUDANÇAS NO CSS] */
-        /* ... (O mesmo CSS moderno que fizemos antes) ... */
-         :root {
-            --primary-color: #007bff; --success-color: #28a745; --danger-color: #dc3545;
-            --light-gray: #f8f9fa; --medium-gray: #e9ecef; --dark-gray: #6c757d;
-            --text-color: #343a40; --white: #ffffff; --border-color: #dee2e6;
-            --shadow-sm: rgba(0, 0, 0, 0.08); --shadow-md: rgba(0, 0, 0, 0.1);
+        /* Estilos Gerais Otimizados para iFrame */
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+            --text-color: #343a40;
+            --white: #ffffff;
+            --border-color: #dee2e6;
+            --shadow-sm: rgba(0, 0, 0, 0.08);
+            --shadow-md: rgba(0, 0, 0, 0.1);
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--light-gray); margin: 0; padding: 20px; color: var(--text-color); line-height: 1.5; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);}
-        .header h1 { text-align: left; color: #495057; margin: 0; font-weight: 500; font-size: 1.8rem; flex-grow: 1; }
-        .header img { max-height: 50px; width: auto; }
+        html { box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--light-gray);
+            margin: 0;
+            padding: 10px; /* Padding reduzido para iframe */
+            color: var(--text-color);
+            line-height: 1.5;
+            min-width: fit-content;
+        }
+
+        /* Header (sem mudanças significativas) */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);}
+        .header h1 { text-align: left; color: #495057; margin: 0; font-weight: 500; font-size: 1.6rem; flex-grow: 1; }
+        .header img { max-height: 45px; width: auto; }
+
         button { cursor: pointer; transition: background-color 0.2s ease; }
         .container { max-width: 100%; margin: 0 auto; }
-        .section { background-color: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px var(--shadow-sm); margin-bottom: 25px; }
-        .filter-container { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .filter-container label { font-weight: 600; color: var(--dark-gray); }
-        .filter-container select, .filter-container input, .filter-container button { padding: 10px 15px; border-radius: 5px; border: 1px solid var(--border-color); font-size: 14px; } /* Adicionado input */
+        .section { background-color: var(--white); padding: 15px; border-radius: 6px; box-shadow: 0 1px 4px var(--shadow-sm); margin-bottom: 20px; }
+
+        /* Filtro (sem mudanças significativas) */
+        .filter-container { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .filter-container label { font-weight: 600; color: var(--dark-gray); font-size: 0.9rem; }
+        .filter-container select, .filter-container input, .filter-container button { padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 13px; }
         .filter-container button { background-color: var(--primary-color); color: var(--white); border: none; }
         .filter-container button:hover { background-color: #0056b3; }
-        .kanban-board-wrapper { overflow-x: auto; padding: 10px 0; margin: 0 -20px; padding: 0 20px 15px 20px; }
-        .kanban-board { display: flex; gap: 20px; min-height: 450px; width: max-content; }
-        .kanban-column { background-color: var(--medium-gray); border-radius: 6px; padding: 15px; width: 300px; flex-shrink: 0; display: flex; flex-direction: column; box-shadow: 0 1px 3px var(--shadow-sm); }
-        .kanban-column h2 { font-size: 1rem; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); text-align: center; color: var(--text-color); font-weight: 600; }
-        #coluna-concluido { background-color: #e6f9f0; border-top: 4px solid var(--success-color); }
-        #coluna-rejeitado { background-color: #fdeded; border-top: 4px solid var(--danger-color); }
-        .kanban-card { display: block; text-decoration: none; color: inherit; background-color: var(--white); border-radius: 4px; padding: 12px 15px; margin-bottom: 12px; box-shadow: 0 2px 4px var(--shadow-md); font-size: 0.8rem; border-left: 4px solid var(--primary-color); transition: box-shadow 0.2s ease, transform 0.2s ease; }
-        .kanban-card:hover { box-shadow: 0 5px 10px rgba(0,0,0,0.15); transform: translateY(-2px); }
+
+        /* Wrapper Kanban Board */
+        .kanban-board-wrapper {
+             overflow-x: auto;
+             padding-bottom: 10px;
+        }
+        /* Kanban Board */
+        .kanban-board {
+            display: flex;
+            gap: 15px;
+            min-height: 400px; /* Reduzido um pouco */
+            width: max-content;
+        }
+        .kanban-column {
+            background-color: var(--medium-gray); border-radius: 5px; padding: 12px;
+            width: 280px; /* Mantido mais estreito para iframe */
+            flex-shrink: 0; display: flex; flex-direction: column; box-shadow: 0 1px 3px var(--shadow-sm);
+        }
+        .kanban-column h2 { font-size: 0.9rem; margin: 0 0 12px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); text-align: center; color: var(--text-color); font-weight: 600; }
+        #coluna-concluido { background-color: #e6f9f0; border-top: 3px solid var(--success-color); }
+        #coluna-rejeitado { background-color: #fdeded; border-top: 3px solid var(--danger-color); }
+
+        /* MUDANÇA: Estilos do Card (Link <a>) - RESTAURADOS PARA VERSÃO ANTERIOR (com ajustes menores) */
+        .kanban-card {
+            display: block; text-decoration: none; color: inherit;
+            background-color: var(--white);
+            border-radius: 4px;
+            /* Restaurado padding original */
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            /* Restaurada sombra original */
+            box-shadow: 0 2px 4px var(--shadow-md);
+            /* Restaurado font-size original */
+            font-size: 0.8rem;
+             /* Mantida borda esquerda menor */
+            border-left: 4px solid var(--primary-color);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .kanban-card:hover {
+             /* Restaurado hover original */
+            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
         .kanban-card.rejeitado-card { border-left-color: var(--danger-color); }
         .kanban-card.concluido-card { border-left-color: var(--success-color); }
-        .kanban-card strong { color: #495057; font-weight: 500; display: inline-block; min-width: 65px; }
-        .kanban-card .info-line { margin-bottom: 4px; }
-        .kanban-card .comentarios { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-style: italic; color: var(--dark-gray); font-size: 0.75rem; white-space: pre-wrap; word-break: break-word; }
-        .kanban-card small { color: var(--dark-gray); font-size: 0.7rem; display: block; margin-top: 6px; text-align: right; }
-        .loading { text-align: center; font-style: italic; color: var(--dark-gray); padding: 50px 0; }
-        .update-time { margin-top: 20px; font-size: 0.8rem; color: var(--dark-gray); text-align: center; }
-        @media (max-width: 768px) { /* Ajustado breakpoint */
-            body { padding: 10px; }
-            .header { flex-direction: column; align-items: flex-start; }
-            .header h1 { font-size: 1.5rem; margin-bottom: 10px;}
-            .header img { max-height: 40px; align-self: flex-end;}
-            .section { padding: 15px; margin-bottom: 20px; }
-            .filter-container { gap: 10px; flex-direction: column; align-items: stretch;} /* Empilha filtros */
-            .filter-container select, .filter-container input, .filter-container button { width: 100%; box-sizing: border-box; }
-            .kanban-board-wrapper { margin: 0 -10px; padding: 0 10px 10px 10px; }
-            .kanban-column { width: 260px; min-width: 260px; padding: 10px; }
-            .kanban-card { padding: 10px; font-size: 0.75rem; }
+        .kanban-card strong {
+            color: #495057; font-weight: 500; display: inline-block;
+            /* Restaurado min-width original */
+            min-width: 65px;
+        }
+        .kanban-card .info-line { margin-bottom: 4px; } /* Mantido */
+        .kanban-card .comentarios {
+            margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee;
+            font-style: italic; color: var(--dark-gray);
+            /* Restaurado font-size original */
+            font-size: 0.75rem;
+            white-space: pre-wrap; word-break: break-word;
+         }
+        .kanban-card small {
+            color: var(--dark-gray);
+            /* Restaurado font-size original */
+            font-size: 0.7rem;
+            display: block; margin-top: 6px; text-align: right;
+        }
+
+        /* Loading e Update Time */
+        .loading { text-align: center; font-style: italic; color: var(--dark-gray); padding: 40px 0; }
+        .update-time { margin-top: 15px; font-size: 0.75rem; color: var(--dark-gray); text-align: center; }
+
+        /* Media Query (Mantida a otimização para telas pequenas) */
+        @media (max-width: 480px) {
+            body { padding: 5px; }
+            .header { flex-direction: column; align-items: flex-start; margin-bottom: 15px; }
+            .header h1 { font-size: 1.3rem; margin-bottom: 8px;}
+            .header img { max-height: 35px; align-self: flex-end;}
+            .section { padding: 10px; margin-bottom: 15px; }
+            .filter-container { gap: 8px; flex-direction: column; align-items: stretch; }
+            .filter-container select, .filter-container input, .filter-container button { width: 100%; box-sizing: border-box; font-size: 13px; padding: 8px 10px; }
+            .kanban-board-wrapper { margin: 0 -5px; padding: 0 5px 8px 5px; }
+            .kanban-column { width: 240px; min-width: 240px; padding: 10px; }
+            .kanban-card { padding: 10px 12px; font-size: 0.72rem; } /* Ajustado padding e fonte no mobile */
+            .kanban-card strong { min-width: 55px; }
+            .kanban-card small { font-size: 0.65rem; }
         }
 
     </style>
@@ -76,17 +154,22 @@
             <label for="mesFiltro">Mês:</label>
             <select id="mesFiltro">
                 <option value="todos">-- Todos --</option>
-                <option value="1">Janeiro</option> <option value="2">Fevereiro</option> <option value="3">Março</option>
-                <option value="4">Abril</option> <option value="5">Maio</option> <option value="6">Junho</option>
-                <option value="7">Julho</option> <option value="8">Agosto</option> <option value="9">Setembro</option>
-                <option value="10">Outubro</option> <option value="11">Novembro</option> <option value="12">Dezembro</option>
+                <option value="1">Jan</option> <option value="2">Fev</option> <option value="3">Mar</option>
+                <option value="4">Abr</option> <option value="5">Mai</option> <option value="6">Jun</option>
+                <option value="7">Jul</option> <option value="8">Ago</option> <option value="9">Set</option>
+                <option value="10">Out</option> <option value="11">Nov</option> <option value="12">Dez</option>
             </select>
 
             <label for="anoFiltro">Ano:</label>
-            <input type="number" id="anoFiltro" min="2020" max="2099" placeholder="Ano (ex: 2025)"> <button onclick="aplicarFiltros()">Filtrar</button> <button onclick="buscarEAtualizarKanban()">Atualizar Dados</button> <span class="loading" id="loadingSpinner" style="display: none; margin-left: auto;">🔄</span>
+            <input type="number" id="anoFiltro" min="2020" max="2099" placeholder="Ano">
+
+            <button onclick="aplicarFiltros()">Filtrar</button>
+            <button onclick="buscarEAtualizarKanban()">Atualizar Dados</button>
+            <span class="loading" id="loadingSpinner" style="display: none; margin-left: auto;">🔄</span>
         </div>
 
         <div class="loading" id="loadingMessage" style="display: none;">Carregando dados do Kanban...</div>
+
         <div class="kanban-board-wrapper">
             <div class="kanban-board">
                 <div class="kanban-column" id="coluna-solicitado"> <h2>Solicitado</h2> </div>
@@ -98,10 +181,11 @@
                 <div class="kanban-column" id="coluna-rejeitado"> <h2>Rejeitado</h2> </div>
             </div>
         </div>
+
         <p class="update-time"><small>Última atualização: <span id="lastUpdateTime">Nunca</span></small></p>
     </div>
 
-    <script>
+<script>
         const flowUrl = 'https://defaultaf73075ee5864d09b8b3d44b758089.52.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b42da973b6334102a90433cb65b74dce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hvnPf8RyBdTS-ILDY5bE6Rle3Db2HpItaoaDX_M1Beg'; // <<< IMPORTANTE
 
         const mapaColunas = { /* ... (igual antes) ... */ };
