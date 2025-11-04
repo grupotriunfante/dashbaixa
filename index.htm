@@ -6,6 +6,17 @@
     <title>Kanban Baixas de Estoque - Dinâmico</title>
     <style>
         /* Estilos Gerais */
+        .maintenance-notice {
+            background-color: #fff3cd; /* Cor de fundo amarela clara para aviso */
+            color: #856404; /* Cor do texto escura */
+            border: 1px solid #ffeeba;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
         :root {
             --primary-color: #007bff;
             --success-color: #28a745;
@@ -125,9 +136,16 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-             <h1>Gestão Visual das Solicitações de Baixa</h1>
-             <img src="http://i.imgur.com/Fln53Oi.png" alt="Logo">
+	        <div class="header">
+	             <h1>Gestão Visual das Solicitações de Baixa</h1>
+	             <img src="http://i.imgur.com/Fln53Oi.png" alt="Logo">
+	        </div>
+	
+	        <div class="maintenance-notice">
+	            ⚠️ Aviso de Manutenção: O sistema estará passando por atualização das 10h00 às 22h00 do dia 04/11. Durante este período, alguns dados poderão estar desatualizados.
+	        </div>
+	
+
         </div>
 
         <div class="section filter-container">
