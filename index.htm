@@ -1,363 +1,50 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Baixas de Estoque - Dinâmico</title>
-    <style>
-        /* Estilos Gerais */
-        .maintenance-notice {
-            background-color: #fff3cd; /* Cor de fundo amarela clara para aviso */
-            color: #856404; /* Cor do texto escura */
-            border: 1px solid #ffeeba;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        :root {
-            --primary-color: #007bff;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --light-gray: #f8f9fa;
-            --medium-gray: #e9ecef;
-            --dark-gray: #6c757d;
-            --text-color: #343a40;
-            --white: #ffffff;
-            --border-color: #dee2e6;
-            --shadow-sm: rgba(0, 0, 0, 0.08);
-            --shadow-md: rgba(0, 0, 0, 0.1);
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--light-gray);
-            margin: 0;
-            padding: 10px; 
-            color: var(--text-color);
-            line-height: 1.5;
-            box-sizing: border-box; 
-        }
+<!DOCTYPE html><html lang="pt-BR"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Kanban Baixas de Estoque - Dinâmico</title>    <style>        /* Estilos Gerais */        .maintenance-notice {            background-color: #fff3cd; /* Cor de fundo amarela clara para aviso */            color: #856404; /* Cor do texto escura */            border: 1px solid #ffeeba;            padding: 10px;            margin-bottom: 20px;            border-radius: 5px;            text-align: center;            font-weight: 600;            font-size: 0.9rem;        }        :root {            --primary-color: #007bff;            --success-color: #28a745;            --danger-color: #dc3545;            --light-gray: #f8f9fa;            --medium-gray: #e9ecef;            --dark-gray: #6c757d;            --text-color: #343a40;            --white: #ffffff;            --border-color: #dee2e6;            --shadow-sm: rgba(0, 0, 0, 0.08);            --shadow-md: rgba(0, 0, 0, 0.1);        }        body {            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;            background-color: var(--light-gray);            margin: 0;            padding: 10px;             color: var(--text-color);            line-height: 1.5;            box-sizing: border-box;         }
+        /* Header */        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);}        .header h1 { text-align: left; color: #495057; margin: 0; font-weight: 500; font-size: 1.6rem; flex-grow: 1; }        .header img { max-height: 45px; width: auto; }
+        button { cursor: pointer; transition: background-color 0.2s ease; }        .container { max-width: 100%; margin: 0 auto; }        .section { background-color: var(--white); padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px var(--shadow-sm); margin-bottom: 20px; }
+        /* Filtro */        .filter-container { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }        .filter-container label { font-weight: 600; color: var(--dark-gray); }                /* === MUDANÇA CHAVE (CSS) === */        /* Adicionado 'input[type="date"]' para estilizar os novos campos */        .filter-container select,         .filter-container button,        .filter-container input[type="date"] {            padding: 10px 15px;            border-radius: 5px;            border: 1px solid var(--border-color);            font-size: 14px;            flex-grow: 1;             flex-basis: 160px;             box-sizing: border-box;        }        .filter-container button {            background-color: var(--primary-color);            color: var(--white);            border: none;            /* Define uma base menor para o botão */            flex-basis: 100px;        }        .filter-container button:hover { background-color: #0056b3; }
+        /* === NOVO ESTILO (CSS) === */        /* Estilo para o botão "Limpar Filtros" */        .filter-container .btn-secondary {            background-color: var(--dark-gray);        }        .filter-container .btn-secondary:hover {            background-color: #5a6268;        }
 
-        /* Header */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);}
-        .header h1 { text-align: left; color: #495057; margin: 0; font-weight: 500; font-size: 1.6rem; flex-grow: 1; }
-        .header img { max-height: 45px; width: auto; }
-
-        button { cursor: pointer; transition: background-color 0.2s ease; }
-        .container { max-width: 100%; margin: 0 auto; }
-        .section { background-color: var(--white); padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px var(--shadow-sm); margin-bottom: 20px; }
-
-        /* Filtro */
-        .filter-container { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .filter-container label { font-weight: 600; color: var(--dark-gray); }
-        
-        /* === MUDANÇA CHAVE (CSS) === */
-        /* Adicionado 'input[type="date"]' para estilizar os novos campos */
-        .filter-container select, 
-        .filter-container button,
-        .filter-container input[type="date"] {
-            padding: 10px 15px;
-            border-radius: 5px;
-            border: 1px solid var(--border-color);
-            font-size: 14px;
-            flex-grow: 1; 
-            flex-basis: 160px; 
-            box-sizing: border-box;
-        }
-        .filter-container button {
-            background-color: var(--primary-color);
-            color: var(--white);
-            border: none;
-            /* Define uma base menor para o botão */
-            flex-basis: 100px;
-        }
-        .filter-container button:hover { background-color: #0056b3; }
-
-        /* === NOVO ESTILO (CSS) === */
-        /* Estilo para o botão "Limpar Filtros" */
-        .filter-container .btn-secondary {
-            background-color: var(--dark-gray);
-        }
-        .filter-container .btn-secondary:hover {
-            background-color: #5a6268;
-        }
-
-
-        /* Quadro Kanban */
-        .kanban-board-wrapper {
-            overflow-x: auto; 
-            padding: 10px 0;
-            margin: 0;
-            padding-bottom: 15px;
-        }
-        .kanban-board {
-            display: flex;
-            gap: 15px;
-            min-height: 450px;
-            width: max-content; 
-        }
-        .kanban-column {
-            background-color: var(--medium-gray);
-            border-radius: 6px;
-            padding: 12px;
-            width: 280px; 
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 1px 3px var(--shadow-sm);
-        }
-        .kanban-column h2 { font-size: 0.95rem; margin: 0 0 12px 0; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); text-align: center; color: var(--text-color); font-weight: 600; }
-        #coluna-concluido { background-color: #e6f9f0; border-top: 4px solid var(--success-color); }
-        #coluna-rejeitado { background-color: #fdeded; border-top: 4px solid var(--danger-color); }
-
-        /* Card (Link <a>) */
-        .kanban-card {
-            display: block;
-            text-decoration: none;
-            color: inherit;
-            background-color: var(--white);
-            border-radius: 4px;
-            padding: 10px 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 4px var(--shadow-md);
-            font-size: 0.78rem; 
-            border-left: 4px solid var(--primary-color);
-            transition: box-shadow 0.2s ease, transform 0.2s ease;
-        }
-        .kanban-card:hover { box-shadow: 0 5px 10px rgba(0,0,0,0.15); transform: translateY(-2px); }
-        .kanban-card.rejeitado-card { border-left-color: var(--danger-color); }
-        .kanban-card.concluido-card { border-left-color: var(--success-color); }
-        .kanban-card strong { color: #495057; font-weight: 500; display: inline-block; min-width: 65px; }
-        .kanban-card .info-line { margin-bottom: 4px; }
-        .kanban-card .comentarios { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-style: italic; color: var(--dark-gray); font-size: 0.75rem; white-space: pre-wrap; word-break: break-word; }
-        .kanban-card small { color: var(--dark-gray); font-size: 0.7rem; display: block; margin-top: 6px; text-align: right; }
-
-        /* Loading e Update Time */
-        .loading { text-align: center; font-style: italic; color: var(--dark-gray); padding: 50px 0; }
-        .update-time { margin-top: 15px; font-size: 0.8rem; color: var(--dark-gray); text-align: center; }
-
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Gestão Visual das Solicitações de Baixa</h1>
-            <img src="http://i.imgur.com/Fln53Oi.png" alt="Logo">
+        /* Quadro Kanban */        .kanban-board-wrapper {            overflow-x: auto;             padding: 10px 0;            margin: 0;            padding-bottom: 15px;        }        .kanban-board {            display: flex;            gap: 15px;            min-height: 450px;            width: max-content;         }        .kanban-column {            background-color: var(--medium-gray);            border-radius: 6px;            padding: 12px;            width: 280px;             flex-shrink: 0;            display: flex;            flex-direction: column;            box-shadow: 0 1px 3px var(--shadow-sm);        }        .kanban-column h2 { font-size: 0.95rem; margin: 0 0 12px 0; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); text-align: center; color: var(--text-color); font-weight: 600; }        #coluna-concluido { background-color: #e6f9f0; border-top: 4px solid var(--success-color); }        #coluna-rejeitado { background-color: #fdeded; border-top: 4px solid var(--danger-color); }
+        /* Card (Link <a>) */        .kanban-card {            display: block;            text-decoration: none;            color: inherit;            background-color: var(--white);            border-radius: 4px;            padding: 10px 12px;            margin-bottom: 10px;            box-shadow: 0 2px 4px var(--shadow-md);            font-size: 0.78rem;             border-left: 4px solid var(--primary-color);            transition: box-shadow 0.2s ease, transform 0.2s ease;        }        .kanban-card:hover { box-shadow: 0 5px 10px rgba(0,0,0,0.15); transform: translateY(-2px); }        .kanban-card.rejeitado-card { border-left-color: var(--danger-color); }        .kanban-card.concluido-card { border-left-color: var(--success-color); }        .kanban-card strong { color: #495057; font-weight: 500; display: inline-block; min-width: 65px; }        .kanban-card .info-line { margin-bottom: 4px; }        .kanban-card .comentarios { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-style: italic; color: var(--dark-gray); font-size: 0.75rem; white-space: pre-wrap; word-break: break-word; }        .kanban-card small { color: var(--dark-gray); font-size: 0.7rem; display: block; margin-top: 6px; text-align: right; }
+        /* Loading e Update Time */        .loading { text-align: center; font-style: italic; color: var(--dark-gray); padding: 50px 0; }        .update-time { margin-top: 15px; font-size: 0.8rem; color: var(--dark-gray); text-align: center; }
+    </style></head><body>    <div class="container">        <div class="header">            <h1>Gestão Visual das Solicitações de Baixa</h1>            <img src="http://i.imgur.com/Fln53Oi.png" alt="Logo">        </div>
+        <div class="maintenance-notice">
+            ⚠️ O sistema está passando por uma **atualização no banco de dados**.
+            <br>
+            Os dados podem estar temporariamente desatualizados. Agradecemos a compreensão.
         </div>
     </div>
-
-    <div class="section filter-container">
-        <label for="unidadeFiltro">Unidade:</label>
-        <select id="unidadeFiltro">
-            <option value="todas">-- Todas --</option>
-            <option value="ABC">ABC</option><option value="TCV">TCV</option><option value="TBL">TBL</option>
-            <option value="TBE">TBE</option><option value="API">API</option><option value="TPA">TPA</option>
-            <option value="TPH">TPH</option><option value="TSJ">TSJ</option><option value="TCA">TCA</option>
-            <option value="TCG">TCG</option><option value="MCD">MCD</option>
-        </select>
-        
-        <label for="dataInicioFiltro">De:</label>
-        <input type="date" id="dataInicioFiltro" title="Data de Início">
-
-        <label for="dataFimFiltro">Até:</label>
-        <input type="date" id="dataFimFiltro" title="Data Fim">
-
-        <button onclick="buscarEAtualizarKanban()">Atualizar Dados</button>
-        <button onclick="limparFiltros()" class="btn-secondary">Limpar Filtros</button> <span class="loading" id="loadingSpinner" style="display: none; margin-left: auto;">🔄</span>
-    </div>
-    <div class="loading" id="loadingMessage" style="display: none;">Carregando dados do Kanban...</div>
-
-    <div class="kanban-board-wrapper">
-        <div class="kanban-board">
-            <div class="kanban-column" id="coluna-solicitado"> <h2>Solicitado</h2> </div>
-            <div class="kanban-column" id="coluna-aprovacao-pp"> <h2>Aprovação PP</h2> </div>
-            <div class="kanban-column" id="coluna-aprovacao-log"> <h2>Aprovação Logística</h2> </div>
-            <div class="kanban-column" id="coluna-aprovacao-fin"> <h2>Aprovação Financeira</h2> </div>
-            <div class="kanban-column" id="coluna-baixa-cpd"> <h2>Baixa CPD</h2> </div>
-            <div class="kanban-column" id="coluna-concluido"> <h2>Concluído</h2> </div>
-            <div class="kanban-column" id="coluna-rejeitado"> <h2>Rejeitado</h2> </div>
-        </div>
-    </div>
-
-    <p class="update-time"><small>Última atualização: <span id="lastUpdateTime">Nunca</span></small></p>
-    </div>
-
-    <script>
-        const flowUrl = 'https://defaultaf73075ee5864d09b8b3d44b758089.52.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b42da973b6334102a90433cb65b74dce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hvnPf8RyBdTS-ILDY5bE6Rle3Db2HpItaoaDX_M1Beg'; // <<< IMPORTANTE: Cole sua URL aqui
-
-        const mapaColunas = {
-            'Início do Processo': 'coluna-solicitado',
-            'Aprovação Prevenção de Perdas': 'coluna-aprovacao-pp',
-            'Aprovação Logistica Corporativa': 'coluna-aprovacao-log',
-            'Aprovação Diretoria Financeira': 'coluna-aprovacao-fin',
-            'Baixa CPD': 'coluna-baixa-cpd',
-            'Processo Finalizado e Notificado': 'coluna-concluido'
-        };
-
-        async function buscarEAtualizarKanban() {
-            const loadingMessage = document.getElementById('loadingMessage');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            const kanbanWrapper = document.querySelector('.kanban-board-wrapper');
-            loadingMessage.style.display = 'block'; loadingSpinner.style.display = 'inline';
-            kanbanWrapper.style.display = 'none';
-
-            try {
-                const response = await fetch(flowUrl);
-                if (!response.ok) throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
-                const solicitacoes = await response.json();
-                if (!Array.isArray(solicitacoes)) {
-                    throw new Error('Formato de dados inválido (esperava lista).');
+    <div class="section filter-container">        <label for="unidadeFiltro">Unidade:</label>        <select id="unidadeFiltro">            <option value="todas">-- Todas --</option>            <option value="ABC">ABC</option><option value="TCV">TCV</option><option value="TBL">TBL</option>            <option value="TBE">TBE</option><option value="API">API</option><option value="TPA">TPA</option>            <option value="TPH">TPH</option><option value="TSJ">TSJ</option><option value="TCA">TCA</option>            <option value="TCG">TCG</option><option value="MCD">MCD</option>        </select>                <label for="dataInicioFiltro">De:</label>        <input type="date" id="dataInicioFiltro" title="Data de Início">
+        <label for="dataFimFiltro">Até:</label>        <input type="date" id="dataFimFiltro" title="Data Fim">
+        <button onclick="buscarEAtualizarKanban()">Atualizar Dados</button>        <button onclick="limparFiltros()" class="btn-secondary">Limpar Filtros</button> <span class="loading" id="loadingSpinner" style="display: none; margin-left: auto;">🔄</span>    </div>    <div class="loading" id="loadingMessage" style="display: none;">Carregando dados do Kanban...</div>
+    <div class="kanban-board-wrapper">        <div class="kanban-board">            <div class="kanban-column" id="coluna-solicitado"> <h2>Solicitado</h2> </div>            <div class="kanban-column" id="coluna-aprovacao-pp"> <h2>Aprovação PP</h2> </div>            <div class="kanban-column" id="coluna-aprovacao-log"> <h2>Aprovação Logística</h2> </div>            <div class="kanban-column" id="coluna-aprovacao-fin"> <h2>Aprovação Financeira</h2> </div>            <div class="kanban-column" id="coluna-baixa-cpd"> <h2>Baixa CPD</h2> </div>            <div class="kanban-column" id="coluna-concluido"> <h2>Concluído</h2> </div>            <div class="kanban-column" id="coluna-rejeitado"> <h2>Rejeitado</h2> </div>        </div>    </div>
+    <p class="update-time"><small>Última atualização: <span id="lastUpdateTime">Nunca</span></small></p>    </div>
+    <script>        const flowUrl = 'https://defaultaf73075ee5864d09b8b3d44b758089.52.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b42da973b6334102a90433cb65b74dce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hvnPf8RyBdTS-ILDY5bE6Rle3Db2HpItaoaDX_M1Beg'; // <<< IMPORTANTE: Cole sua URL aqui
+        const mapaColunas = {            'Início do Processo': 'coluna-solicitado',            'Aprovação Prevenção de Perdas': 'coluna-aprovacao-pp',            'Aprovação Logistica Corporativa': 'coluna-aprovacao-log',            'Aprovação Diretoria Financeira': 'coluna-aprovacao-fin',            'Baixa CPD': 'coluna-baixa-cpd',            'Processo Finalizado e Notificado': 'coluna-concluido'        };
+        async function buscarEAtualizarKanban() {            const loadingMessage = document.getElementById('loadingMessage');            const loadingSpinner = document.getElementById('loadingSpinner');            const kanbanWrapper = document.querySelector('.kanban-board-wrapper');            loadingMessage.style.display = 'block'; loadingSpinner.style.display = 'inline';            kanbanWrapper.style.display = 'none';
+            try {                const response = await fetch(flowUrl);                if (!response.ok) throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);                const solicitacoes = await response.json();                if (!Array.isArray(solicitacoes)) {                    throw new Error('Formato de dados inválido (esperava lista).');
                 }
-
-                limparColunasKanban();
-                desenharCardsKanban(solicitacoes);
-                
-                // ===== MUDANÇA CHAVE (JS) =====
-                // Chama a nova função de filtro geral
-                aplicarFiltros(); 
-                
-                document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString('pt-BR');
-                loadingMessage.style.display = 'none';
-
-            } catch (error) {
-                console.error('Erro:', error);
-                loadingMessage.textContent = `Falha: ${error.message}. Tente atualizar.`;
-                loadingMessage.style.color = 'red'; loadingMessage.style.display = 'block';
-                limparColunasKanban();
-            } finally {
-                loadingSpinner.style.display = 'none';
-                kanbanWrapper.style.display = 'block';
-            }
-        }
-
-        function limparColunasKanban() {
-            document.querySelectorAll('.kanban-column').forEach(coluna => {
-                coluna.querySelectorAll('.kanban-card').forEach(card => card.remove());
-            });
-        }
-
-        function desenharCardsKanban(solicitacoes) {
-            if (!Array.isArray(solicitacoes)) return;
-
-            solicitacoes.forEach(sol => {
-                let colunaId;
-                const isRejeitado = sol.Status === 'Reject' || sol.Status === 'Rejected';
-                const isConcluido = sol.EtapaProcesso === 'Processo Finalizado e Notificado' || sol.Status === 'Concluído' || sol.Status === 'Baixa Concluída e NF Anexada';
-
-                if (isRejeitado) colunaId = 'coluna-rejeitado';
-                else if (isConcluido) colunaId = 'coluna-concluido';
-                else colunaId = mapaColunas[sol.EtapaProcesso] || 'coluna-solicitado';
-
+                limparColunasKanban();                desenharCardsKanban(solicitacoes);                                // ===== MUDANÇA CHAVE (JS) =====                // Chama a nova função de filtro geral                aplicarFiltros();                                 document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString('pt-BR');                loadingMessage.style.display = 'none';
+            } catch (error) {                console.error('Erro:', error);                loadingMessage.textContent = `Falha: ${error.message}. Tente atualizar.`;                loadingMessage.style.color = 'red'; loadingMessage.style.display = 'block';                limparColunasKanban();            } finally {                loadingSpinner.style.display = 'none';                kanbanWrapper.style.display = 'block';            }        }
+        function limparColunasKanban() {            document.querySelectorAll('.kanban-column').forEach(coluna => {                coluna.querySelectorAll('.kanban-card').forEach(card => card.remove());            });        }
+        function desenharCardsKanban(solicitacoes) {            if (!Array.isArray(solicitacoes)) return;
+            solicitacoes.forEach(sol => {                let colunaId;                const isRejeitado = sol.Status === 'Reject' || sol.Status === 'Rejected';                const isConcluido = sol.EtapaProcesso === 'Processo Finalizado e Notificado' || sol.Status === 'Concluído' || sol.Status === 'Baixa Concluída e NF Anexada';
+                if (isRejeitado) colunaId = 'coluna-rejeitado';                else if (isConcluido) colunaId = 'coluna-concluido';                else colunaId = mapaColunas[sol.EtapaProcesso] || 'coluna-solicitado';
                 const colunaElement = document.getElementById(colunaId);
-
-                if (colunaElement) {
-                    const cardLink = document.createElement('a');
-                    cardLink.className = 'kanban-card';
-                    cardLink.href = sol.UrlHtmlSolicitacao || '#';
-                    cardLink.target = '_blank';
-
-                    // ===== MUDANÇAS CHAVE (JS) =====
-                    // Adiciona os atributos de dados para filtragem
-                    cardLink.setAttribute('data-unidade', sol.Unidade || 'N/A');
-                    cardLink.setAttribute('data-timestamp', sol.Timestamp || 'N/A'); // NOVO
-
-                    if (isRejeitado) cardLink.classList.add('rejeitado-card');
-                    if (isConcluido) cardLink.classList.add('concluido-card');
-
-                    let dataFormatada = 'N/A';
-                    if (sol.Timestamp) { 
-                        try { 
-                            const dataObj = new Date(sol.Timestamp); 
-                            if (!isNaN(dataObj.getTime())) { 
-                                dataFormatada = dataObj.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); 
-                            } 
-                        } catch (e) { 
-                            console.warn("Erro data:", sol.Timestamp, e); 
-                        } 
-                    }
-
+                if (colunaElement) {                    const cardLink = document.createElement('a');                    cardLink.className = 'kanban-card';                    cardLink.href = sol.UrlHtmlSolicitacao || '#';                    cardLink.target = '_blank';
+                    // ===== MUDANÇAS CHAVE (JS) =====                    // Adiciona os atributos de dados para filtragem                    cardLink.setAttribute('data-unidade', sol.Unidade || 'N/A');                    cardLink.setAttribute('data-timestamp', sol.Timestamp || 'N/A'); // NOVO
+                    if (isRejeitado) cardLink.classList.add('rejeitado-card');                    if (isConcluido) cardLink.classList.add('concluido-card');
+                    let dataFormatada = 'N/A';                    if (sol.Timestamp) {                         try {                             const dataObj = new Date(sol.Timestamp);                             if (!isNaN(dataObj.getTime())) {                                 dataFormatada = dataObj.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });                             }                         } catch (e) {                             console.warn("Erro data:", sol.Timestamp, e);                         }                     }
                     const comentariosSanitizados = (sol.Comentarios || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-                    cardLink.innerHTML = `
-                        <div class="info-line"><strong>ID:</strong> ${sol.ID_Solicitacao || 'N/A'}</div>
-                        <div class="info-line"><strong>Unidade:</strong> ${sol.Unidade || 'N/A'}</div>
-                        <div class="info-line"><strong>${sol.EtapaProcesso === 'coluna-solicitado' || sol.EtapaProcesso === 'Início do Processo' ? 'Solicitante:' : 'Últ. Resp.:'}</strong> ${sol.Solicitante || 'N/A'}</div>
-                        <div class="info-line"><strong>Motivo:</strong> ${sol.Motivo || 'N/A'}</div>
-                        ${(comentariosSanitizados && comentariosSanitizados.trim() !== '') ? `<div class="comentarios"><strong>Coment.:</strong> ${comentariosSanitizados}</div>` : ''}
-                        <small>Atualizado: ${dataFormatada}</small>
-                    `;
-                    colunaElement.appendChild(cardLink);
-                } else {
-                    console.warn(`Coluna HTML '${colunaId}' não encontrada para '${sol.EtapaProcesso}' (ID: ${sol.ID_Solicitacao})`);
-                }
-            });
-        }
-
-        // ===== FUNÇÃO DE FILTRO NOVA E UNIFICADA (JS) =====
-        function aplicarFiltros() {
-            const unidadeSelecionada = document.getElementById('unidadeFiltro').value;
-            const dataInicioVal = document.getElementById('dataInicioFiltro').value;
-            const dataFimVal = document.getElementById('dataFimFiltro').value;
-            
-            // Cria objetos Date. 'T00:00:00' e 'T23:59:59' garantem que o dia inteiro seja incluído.
-            const dataInicioObj = dataInicioVal ? new Date(dataInicioVal + 'T00:00:00') : null;
-            const dataFimObj = dataFimVal ? new Date(dataFimVal + 'T23:59:59') : null;
-
+                    cardLink.innerHTML = `                        <div class="info-line"><strong>ID:</strong> ${sol.ID_Solicitacao || 'N/A'}</div>                        <div class="info-line"><strong>Unidade:</strong> ${sol.Unidade || 'N/A'}</div>                        <div class="info-line"><strong>${sol.EtapaProcesso === 'coluna-solicitado' || sol.EtapaProcesso === 'Início do Processo' ? 'Solicitante:' : 'Últ. Resp.:'}</strong> ${sol.Solicitante || 'N/A'}</div>                        <div class="info-line"><strong>Motivo:</strong> ${sol.Motivo || 'N/A'}</div>                        ${(comentariosSanitizados && comentariosSanitizados.trim() !== '') ? `<div class="comentarios"><strong>Coment.:</strong> ${comentariosSanitizados}</div>` : ''}                        <small>Atualizado: ${dataFormatada}</small>                    `;                    colunaElement.appendChild(cardLink);                } else {                    console.warn(`Coluna HTML '${colunaId}' não encontrada para '${sol.EtapaProcesso}' (ID: ${sol.ID_Solicitacao})`);                }            });        }
+        // ===== FUNÇÃO DE FILTRO NOVA E UNIFICADA (JS) =====        function aplicarFiltros() {            const unidadeSelecionada = document.getElementById('unidadeFiltro').value;            const dataInicioVal = document.getElementById('dataInicioFiltro').value;            const dataFimVal = document.getElementById('dataFimFiltro').value;                        // Cria objetos Date. 'T00:00:00' e 'T23:59:59' garantem que o dia inteiro seja incluído.            const dataInicioObj = dataInicioVal ? new Date(dataInicioVal + 'T00:00:00') : null;            const dataFimObj = dataFimVal ? new Date(dataFimVal + 'T23:59:59') : null;
             const cards = document.querySelectorAll('.kanban-card'); 
-
-            cards.forEach(card => {
-                const unidadeCard = card.getAttribute('data-unidade');
-                const timestampCard = card.getAttribute('data-timestamp');
-                const cardDateObj = (timestampCard && timestampCard !== 'N/A') ? new Date(timestampCard) : null;
-
+            cards.forEach(card => {                const unidadeCard = card.getAttribute('data-unidade');                const timestampCard = card.getAttribute('data-timestamp');                const cardDateObj = (timestampCard && timestampCard !== 'N/A') ? new Date(timestampCard) : null;
                 let mostrar = true; // Começa assumindo que o card será mostrado
-
-                // 1. Verifica Filtro de Unidade
-                if (unidadeSelecionada !== 'todas' && (unidadeCard && unidadeCard.trim().toUpperCase() !== unidadeSelecionada.trim().toUpperCase())) {
-                    mostrar = false;
-                }
-
-                // 2. Verifica Filtro de Data (só se o card tiver uma data válida)
-                if (cardDateObj) {
-                    // Se tem data de início e o card é anterior a ela, esconde
-                    if (dataInicioObj && cardDateObj < dataInicioObj) {
-                        mostrar = false;
-                    }
-                    // Se tem data de fim e o card é posterior a ela, esconde
-                    if (dataFimObj && cardDateObj > dataFimObj) {
-                        mostrar = false;
-                    }
-                } else {
-                    // Se o card NÃO tem data, mas o usuário está filtrando por data, esconde
-                    if (dataInicioObj || dataFimObj) {
-                        mostrar = false; 
-                    }
-                }
-
-                // Aplica a visibilidade
-                card.style.display = mostrar ? 'block' : 'none';
-            });
-        }
-
-        // ===== FUNÇÃO NOVA PARA LIMPAR FILTROS (JS) =====
-        function limparFiltros() {
-            document.getElementById('unidadeFiltro').value = 'todas';
-            document.getElementById('dataInicioFiltro').value = '';
-            document.getElementById('dataFimFiltro').value = '';
-            
-            // Re-executa a filtragem (que agora mostrará tudo)
-            aplicarFiltros();
-        }
-
-        // ===== ATUALIZA OS EVENT LISTENERS (JS) =====
-        document.getElementById('unidadeFiltro').addEventListener('change', aplicarFiltros);
-        document.getElementById('dataInicioFiltro').addEventListener('change', aplicarFiltros); // NOVO
-        document.getElementById('dataFimFiltro').addEventListener('change', aplicarFiltros); // NOVO
-
-        document.addEventListener('DOMContentLoaded', buscarEAtualizarKanban);
-    </script>
-
-</body>
-</html>
+                // 1. Verifica Filtro de Unidade                if (unidadeSelecionada !== 'todas' && (unidadeCard && unidadeCard.trim().toUpperCase() !== unidadeSelecionada.trim().toUpperCase())) {                    mostrar = false;                }
+                // 2. Verifica Filtro de Data (só se o card tiver uma data válida)                if (cardDateObj) {                    // Se tem data de início e o card é anterior a ela, esconde                    if (dataInicioObj && cardDateObj < dataInicioObj) {                        mostrar = false;                    }                    // Se tem data de fim e o card é posterior a ela, esconde                    if (dataFimObj && cardDateObj > dataFimObj) {                        mostrar = false;                    }                } else {                    // Se o card NÃO tem data, mas o usuário está filtrando por data, esconde                    if (dataInicioObj || dataFimObj) {                        mostrar = false;                     }                }
+                // Aplica a visibilidade                card.style.display = mostrar ? 'block' : 'none';            });        }
+        // ===== FUNÇÃO NOVA PARA LIMPAR FILTROS (JS) =====        function limparFiltros() {            document.getElementById('unidadeFiltro').value = 'todas';            document.getElementById('dataInicioFiltro').value = '';            document.getElementById('dataFimFiltro').value = '';                        // Re-executa a filtragem (que agora mostrará tudo)            aplicarFiltros();        }
+        // ===== ATUALIZA OS EVENT LISTENERS (JS) =====        document.getElementById('unidadeFiltro').addEventListener('change', aplicarFiltros);        document.getElementById('dataInicioFiltro').addEventListener('change', aplicarFiltros); // NOVO        document.getElementById('dataFimFiltro').addEventListener('change', aplicarFiltros); // NOVO
+        document.addEventListener('DOMContentLoaded', buscarEAtualizarKanban);    </script>
+</body></html>
