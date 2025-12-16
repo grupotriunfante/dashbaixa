@@ -247,45 +247,81 @@
 
 <script>
     // =========================================================================
-    // 1. CONFIGURAÇÃO (COLE SUA URL DO POWER AUTOMATE AQUI)
+    // 1. CONFIGURAÇÃO
     // =========================================================================
-    
-    // IMPORTANTE: Substitua a URL abaixo pelo link do seu fluxo "Http Request"
     const flowUrl = 'https://defaultaf73075ee5864d09b8b3d44b758089.52.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b42da973b6334102a90433cb65b74dce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hvnPf8RyBdTS-ILDY5bE6Rle3Db2HpItaoaDX_M1Beg';
-
+    
     let DADOS_MEMORIA = [];
 
-    // =========================================================================
-    // 2. CARREGAMENTO E LIMPEZA
-    // =========================================================================
+    // --- FUNÇÃO 1: LIMPEZA DE TEXTO (Resolve o problema das colunas erradas) ---
+    function normalizarTexto(texto) {
+        if (!texto) return "";
+        return String(texto)
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+            .toLowerCase()
+            .trim();
+    }
 
+    // --- FUNÇÃO 2: CONVERSOR DE DATA EXCEL (Resolve o problema "45952") ---
+    function converterDataExcel(serial) {
+        // Se já for string com barra ou traço, tenta converter direto
+        if (String(serial).includes('/') || String(serial).includes('-')) {
+            return new Date(serial); // Deixa o JS tentar
+        }
+        
+        // Se for número (ex: 45952.525)
+        const numero = parseFloat(serial);
+        if (!isNaN(numero) && numero > 30000) { // Maior que 30000 garante que é data recente
+           // O Excel começa em 30/12/1899. O JS trabalha em milissegundos.
+           // 25569 é a diferença de dias entre 1970 e 1900
+           const utc_days  = Math.floor(numero - 25569);
+           const utc_value = utc_days * 86400;                                      
+           const date_info = new Date(utc_value * 1000);
+
+           // Ajuste fino para horas/minutos (fração do dia)
+           const fractional_day = numero - Math.floor(numero) + 0.0000001;
+           const total_seconds = Math.floor(86400 * fractional_day);
+           const seconds = total_seconds % 60;
+           const minutes = Math.floor(total_seconds / 60) % 60;
+           const hours = Math.floor(total_seconds / (60 * 60));
+
+           return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), hours, minutes, seconds);
+        }
+        
+        return new Date(serial); // Fallback
+    }
+
+    // =========================================================================
+    // 2. CARREGAMENTO
+    // =========================================================================
     async function carregarDadosDoFluxo() {
         const msg = document.getElementById('status-msg');
         const spinner = document.getElementById('loadingSpinner');
         
-        msg.innerText = "Conectando ao Excel...";
+        msg.innerText = "Conectando...";
         msg.style.color = "#0056b3";
         spinner.style.display = "inline-block";
 
         try {
             const urlSemCache = flowUrl + "&_t=" + new Date().getTime(); 
-const response = await fetch(urlSemCache);
+            const response = await fetch(urlSemCache);
             if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
             
             const json = await response.json();
             const listaBruta = Array.isArray(json) ? json : (json.value || []);
 
             if (listaBruta.length === 0) {
-                msg.innerText = "⚠️ Nenhum dado encontrado na planilha.";
+                msg.innerText = "⚠️ Nenhum dado.";
                 spinner.style.display = "none";
                 return;
             }
 
-            // Normalização dos dados
             DADOS_MEMORIA = listaBruta.map(item => ({
                 id: item['ID_Solicitacao'] || item['ID_x0020_Solicitacao'] || 'N/A',
                 motivo: item['Motivo'] || '',
-                data: item['Timestamp'] || item['DataHora'] || '', 
+                // AQUI A MÁGICA DA DATA: Passamos o dado cru para nossa função inteligente
+                dataRaw: item['Timestamp'] || item['DataHora'] || '', 
                 unidade: item['Unidade'] || 'N/A',
                 etapa: item['EtapaProcesso'] || item['Etapa_x0020_Processo'] || '',
                 status: item['Status'] || '',
@@ -294,49 +330,37 @@ const response = await fetch(urlSemCache);
                 comentario: item['Comentarios'] || item['Comentários'] || ''
             }));
 
-            msg.innerText = `✅ ${DADOS_MEMORIA.length} registros carregados.`;
+            msg.innerText = `✅ ${DADOS_MEMORIA.length} registros.`;
             msg.style.color = "green";
             
             atualizarKanban();
 
         } catch (error) {
-            console.error("Erro no fetch:", error);
-            msg.innerText = "❌ Falha na conexão. Tente novamente.";
+            console.error("Erro:", error);
+            msg.innerText = "❌ Falha na conexão.";
             msg.style.color = "red";
         } finally {
             spinner.style.display = "none";
         }
     }
 
-    function limparId(id) {
-        return String(id).trim().replace(/[\u200B-\u200D\uFEFF]/g, '');
-    }
-
     function processarDados(dados) {
         const mapaSolicitacoes = new Map();
 
         dados.forEach(log => {
-            const idLimpo = limparId(log.id);
+            const idLimpo = String(log.id).trim();
             if (!idLimpo || idLimpo === 'N/A') return;
 
-            let dataStr = String(log.data).replace(' ', 'T');
-            let dataLog = new Date(dataStr);
-
-            if(isNaN(dataLog)) {
-                const partes = String(log.data).split(' ');
-                if(partes.length > 0 && partes[0].includes('/')) {
-                    const [dia, mes, ano] = partes[0].split('/');
-                    dataStr = `${ano}-${mes}-${dia}T${partes[1] || '00:00:00'}`;
-                    dataLog = new Date(dataStr);
-                }
-            }
-            if(isNaN(dataLog)) dataLog = new Date(0);
+            // Usa a função conversora inteligente
+            let dataLog = converterDataExcel(log.dataRaw);
+            
+            // Validação final de sanidade da data
+            if (isNaN(dataLog.getTime())) dataLog = new Date(0); 
 
             if (!mapaSolicitacoes.has(idLimpo)) {
                 mapaSolicitacoes.set(idLimpo, { ...log, id: idLimpo, dataObj: dataLog });
             } else {
                 const registroExistente = mapaSolicitacoes.get(idLimpo);
-                // Mantém apenas o registro mais recente (maior data)
                 if (dataLog > registroExistente.dataObj) {
                     const valorPreservado = log.valor || registroExistente.valor;
                     mapaSolicitacoes.set(idLimpo, { ...log, id: idLimpo, dataObj: dataLog, valor: valorPreservado });
@@ -348,62 +372,38 @@ const response = await fetch(urlSemCache);
     }
 
     // =========================================================================
-    // 3. REGRA DE NEGÓCIO: TRANSIÇÃO DE ESTADOS
+    // 3. REGRA DE NEGÓCIO (BLINDADA)
     // =========================================================================
 
     function determinarColunaDestino(solicitacao) {
-        // Normaliza textos para evitar erros de maiúsculas/minúsculas
-        const status = String(solicitacao.status || '').toLowerCase();
-        const etapa = String(solicitacao.etapa || '').toLowerCase();
+        // Normalizamos tudo para evitar erros de acento ou Case Sensitive
+        const status = normalizarTexto(solicitacao.status);
+        const etapa = normalizarTexto(solicitacao.etapa);
 
-        // 1. Prioridade: Rejeição
-        // Se foi rejeitado em QUALQUER etapa, vai para a coluna de rejeitados
+        // 1. Rejeição
         if (status.includes('reject') || status.includes('reprovado') || status.includes('rejeitado')) {
             return 'col-rejeitado';
         }
 
-        // 2. Prioridade: Conclusão
-        // Se o status diz que acabou, vai para o fim
-        if (status.includes('baixa concluída') || status.includes('concluído') || status.includes('finalizado')) {
+        // 2. Conclusão
+        if (status.includes('conclui') || status.includes('finalizado') || status.includes('encerrado')) {
             return 'col-concluido';
         }
 
-        // 3. Regra de Transição (Aprovou -> Próxima Coluna)
-        // Se a etapa atual foi "Aprovada", significa que ela ACABOU e vai para a PRÓXIMA.
-        
+        // 3. Aprovações (Transição de Coluna)
         if (status.includes('approve') || status.includes('aprovado')) {
-            
-            // Aprovou PP -> Vai para Logística
-            if (etapa.includes('prevenção') || etapa.includes('prevencao')) {
-                return 'col-aprov-log'; 
-            }
-            
-            // Aprovou Logística -> Vai para Financeiro
-            if (etapa.includes('logistica') || etapa.includes('logística')) {
-                return 'col-aprov-fin'; 
-            }
-            
-            // Aprovou Financeiro -> Vai para Baixa CPD
-            if (etapa.includes('financeira')) {
-                return 'col-baixa-cpd'; 
-            }
-            
-            // Aprovou Baixa CPD (caso raro, geralmente status é 'Concluído')
-            // Se cair aqui, assumimos concluído
-            if (etapa.includes('baixa') || etapa.includes('cpd')) {
-                return 'col-concluido'; 
-            }
+            if (etapa.includes('prevencao')) return 'col-aprov-log'; 
+            if (etapa.includes('logistica')) return 'col-aprov-fin'; 
+            if (etapa.includes('financeira')) return 'col-baixa-cpd'; 
+            if (etapa.includes('baixa') || etapa.includes('cpd')) return 'col-concluido'; 
         }
 
-        // 4. Default: Se não foi aprovado ainda (status "Criado", "Pendente" etc)
-        // O card fica na coluna da etapa atual aguardando ação.
-
-        if (etapa.includes('prevenção') || etapa.includes('prevencao')) return 'col-aprov-pp';
-        if (etapa.includes('logistica') || etapa.includes('logística')) return 'col-aprov-log';
+        // 4. Aguardando na Coluna Atual
+        if (etapa.includes('prevencao')) return 'col-aprov-pp';
+        if (etapa.includes('logistica')) return 'col-aprov-log';
         if (etapa.includes('financeira')) return 'col-aprov-fin';
         if (etapa.includes('cpd') || etapa.includes('baixa')) return 'col-baixa-cpd';
         
-        // Se for Início do Processo e não aprovado ainda, fica no Solicitado
         return 'col-solicitado';
     }
 
@@ -461,7 +461,7 @@ const response = await fetch(urlSemCache);
     function criarHTMLCard(sol) {
         const div = document.createElement('div');
         div.className = 'card';
-        
+        // Link SharePoint
         const url = `https://triunfantecombr.sharepoint.com/sites/Evidncias_PP/Documentos Compartilhados/${sol.unidade}/${sol.id}-${sol.unidade}/${sol.id}.html`;
         div.onclick = () => window.open(url, '_blank');
 
@@ -476,9 +476,11 @@ const response = await fetch(urlSemCache);
             }
         }
 
-        const dataFormatada = sol.dataObj.getFullYear() > 2000 
-            ? sol.dataObj.toLocaleDateString('pt-BR') + ' ' + sol.dataObj.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) 
-            : sol.data;
+        // Formatação da Data (Dia/Mes/Ano Hora:Min)
+        const d = sol.dataObj;
+        const dataFormatada = (d instanceof Date && !isNaN(d))
+             ? d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) 
+             : "Data Inválida";
 
         let htmlComent = '';
         if (sol.comentario && sol.comentario.trim().length > 0) {
@@ -506,7 +508,6 @@ const response = await fetch(urlSemCache);
     // =========================================================================
     // 5. EVENTOS
     // =========================================================================
-
     function atualizarKanban() {
         const unidadeSel = document.getElementById('filtroUnidade').value;
         const dataIni = document.getElementById('filtroDataIni').value;
@@ -516,17 +517,17 @@ const response = await fetch(urlSemCache);
 
         const listaFiltrada = listaUnica.filter(sol => {
             if (unidadeSel !== 'todas' && sol.unidade !== unidadeSel) return false;
+            
             if (dataIni || dataFim) {
-                const dSol = sol.dataObj;
+                const dSol = new Date(sol.dataObj); 
                 dSol.setHours(0,0,0,0);
+                
                 if (dataIni) {
                     const dIni = new Date(dataIni + 'T00:00:00');
-                    dIni.setHours(0,0,0,0);
                     if (dSol < dIni) return false;
                 }
                 if (dataFim) {
                     const dFim = new Date(dataFim + 'T00:00:00');
-                    dFim.setHours(0,0,0,0);
                     if (dSol > dFim) return false;
                 }
             }
@@ -553,6 +554,3 @@ const response = await fetch(urlSemCache);
     });
 
 </script>
-
-</body>
-</html>
