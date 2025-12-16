@@ -3,364 +3,554 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Baixas de Estoque - Dinâmico</title>
+    <title>Kanban Integrado - Grupo Triunfante</title>
     <style>
-        /* Estilos Gerais */
-        .maintenance-notice {
-            background-color: #fff3cd; /* Cor de fundo amarela clara para aviso */
-            color: #856404; /* Cor do texto escura */
-            border: 1px solid #ffeeba;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
         :root {
-            --primary-color: #007bff;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --light-gray: #f8f9fa;
-            --medium-gray: #e9ecef;
-            --dark-gray: #6c757d;
-            --text-color: #343a40;
-            --white: #ffffff;
-            --border-color: #dee2e6;
-            --shadow-sm: rgba(0, 0, 0, 0.08);
-            --shadow-md: rgba(0, 0, 0, 0.1);
+            --primary: #0056b3;
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --border: #dee2e6;
+            --text-main: #343a40;
+            --text-muted: #6c757d;
+            
+            /* Cores dos Status */
+            --st-solicitado: #17a2b8; /* Azul Claro */
+            --st-aprov-pp: #ffc107;   /* Amarelo */
+            --st-aprov-log: #fd7e14;  /* Laranja */
+            --st-aprov-fin: #6f42c1;  /* Roxo */
+            --st-baixa-cpd: #007bff;  /* Azul Forte */
+            --st-concluido: #28a745;  /* Verde */
+            --st-rejeitado: #dc3545;  /* Vermelho */
         }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--light-gray);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             margin: 0;
-            padding: 10px; 
-            color: var(--text-color);
-            line-height: 1.5;
-            box-sizing: border-box; 
-        }
-
-        /* Header */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);}
-        .header h1 { text-align: left; color: #495057; margin: 0; font-weight: 500; font-size: 1.6rem; flex-grow: 1; }
-        .header img { max-height: 45px; width: auto; }
-
-        button { cursor: pointer; transition: background-color 0.2s ease; }
-        .container { max-width: 100%; margin: 0 auto; }
-        .section { background-color: var(--white); padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px var(--shadow-sm); margin-bottom: 20px; }
-
-        /* Filtro */
-        .filter-container { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .filter-container label { font-weight: 600; color: var(--dark-gray); }
-        
-        /* === MUDANÇA CHAVE (CSS) === */
-        /* Adicionado 'input[type="date"]' para estilizar os novos campos */
-        .filter-container select, 
-        .filter-container button,
-        .filter-container input[type="date"] {
-            padding: 10px 15px;
-            border-radius: 5px;
-            border: 1px solid var(--border-color);
-            font-size: 14px;
-            flex-grow: 1; 
-            flex-basis: 160px; 
-            box-sizing: border-box;
-        }
-        .filter-container button {
-            background-color: var(--primary-color);
-            color: var(--white);
-            border: none;
-            /* Define uma base menor para o botão */
-            flex-basis: 100px;
-        }
-        .filter-container button:hover { background-color: #0056b3; }
-
-        /* === NOVO ESTILO (CSS) === */
-        /* Estilo para o botão "Limpar Filtros" */
-        .filter-container .btn-secondary {
-            background-color: var(--dark-gray);
-        }
-        .filter-container .btn-secondary:hover {
-            background-color: #5a6268;
-        }
-
-
-        /* Quadro Kanban */
-        .kanban-board-wrapper {
-            overflow-x: auto; 
-            padding: 10px 0;
-            margin: 0;
-            padding-bottom: 15px;
-        }
-        .kanban-board {
-            display: flex;
-            gap: 15px;
-            min-height: 450px;
-            width: max-content; 
-        }
-        .kanban-column {
-            background-color: var(--medium-gray);
-            border-radius: 6px;
-            padding: 12px;
-            width: 280px; 
-            flex-shrink: 0;
+            padding: 20px;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 1px 3px var(--shadow-sm);
+            box-sizing: border-box;
         }
-        .kanban-column h2 { font-size: 0.95rem; margin: 0 0 12px 0; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); text-align: center; color: var(--text-color); font-weight: 600; }
-        #coluna-concluido { background-color: #e6f9f0; border-top: 4px solid var(--success-color); }
-        #coluna-rejeitado { background-color: #fdeded; border-top: 4px solid var(--danger-color); }
 
-        /* Card (Link <a>) */
-        .kanban-card {
-            display: block;
-            text-decoration: none;
-            color: inherit;
-            background-color: var(--white);
+        /* --- Header & Filtros --- */
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .brand {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        select, input[type="date"] {
+            padding: 8px;
+            border: 1px solid var(--border);
             border-radius: 4px;
-            padding: 10px 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 4px var(--shadow-md);
-            font-size: 0.78rem; 
-            border-left: 4px solid var(--primary-color);
-            transition: box-shadow 0.2s ease, transform 0.2s ease;
+            color: var(--text-main);
         }
-        .kanban-card:hover { box-shadow: 0 5px 10px rgba(0,0,0,0.15); transform: translateY(-2px); }
-        .kanban-card.rejeitado-card { border-left-color: var(--danger-color); }
-        .kanban-card.concluido-card { border-left-color: var(--success-color); }
-        .kanban-card strong { color: #495057; font-weight: 500; display: inline-block; min-width: 65px; }
-        .kanban-card .info-line { margin-bottom: 4px; }
-        .kanban-card .comentarios { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-style: italic; color: var(--dark-gray); font-size: 0.75rem; white-space: pre-wrap; word-break: break-word; }
-        .kanban-card small { color: var(--dark-gray); font-size: 0.7rem; display: block; margin-top: 6px; text-align: right; }
 
-        /* Loading e Update Time */
-        .loading { text-align: center; font-style: italic; color: var(--dark-gray); padding: 50px 0; }
-        .update-time { margin-top: 15px; font-size: 0.8rem; color: var(--dark-gray); text-align: center; }
+        button {
+            background-color: var(--text-main);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
 
+        button:hover { background-color: #23272b; }
+        
+        /* --- Kanban Board --- */
+        .kanban-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            flex-grow: 1;
+            padding-bottom: 10px;
+        }
+
+        .column {
+            min-width: 280px;
+            width: 280px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            max-height: 100%;
+        }
+
+        .column-header {
+            padding: 12px;
+            font-weight: bold;
+            text-align: center;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .column-body {
+            padding: 10px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        /* --- Cards --- */
+        .card {
+            background: var(--bg-card);
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .card-id { font-weight: bold; color: var(--text-main); }
+        .card-unidade { font-weight: bold; padding: 2px 6px; background: #eee; border-radius: 4px; font-size: 0.75rem; }
+
+        .card-body p { margin: 4px 0; font-size: 0.9rem; }
+        .label { font-weight: 600; font-size: 0.8rem; color: #555; }
+        
+        .card-price {
+            margin-top: 8px;
+            font-weight: bold;
+            color: var(--st-concluido);
+            text-align: right;
+            font-size: 0.95rem;
+        }
+
+        .card-footer {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #eee;
+            font-size: 0.75rem;
+            color: #999;
+            text-align: right;
+        }
+
+        /* Estilos Específicos das Colunas */
+        .col-solicitado .column-header { background-color: var(--st-solicitado); }
+        .col-solicitado .card { border-left-color: var(--st-solicitado); }
+
+        .col-aprov-pp .column-header { background-color: var(--st-aprov-pp); color: #444; }
+        .col-aprov-pp .card { border-left-color: var(--st-aprov-pp); }
+
+        .col-aprov-log .column-header { background-color: var(--st-aprov-log); }
+        .col-aprov-log .card { border-left-color: var(--st-aprov-log); }
+
+        .col-aprov-fin .column-header { background-color: var(--st-aprov-fin); }
+        .col-aprov-fin .card { border-left-color: var(--st-aprov-fin); }
+
+        .col-baixa-cpd .column-header { background-color: var(--st-baixa-cpd); }
+        .col-baixa-cpd .card { border-left-color: var(--st-baixa-cpd); }
+
+        .col-concluido .column-header { background-color: var(--st-concluido); }
+        .col-concluido .column-body { background-color: #e6f9ed; }
+        .col-concluido .card { border-left-color: var(--st-concluido); opacity: 0.9; }
+
+        .col-rejeitado .column-header { background-color: var(--st-rejeitado); }
+        .col-rejeitado .column-body { background-color: #fce8e8; }
+        .col-rejeitado .card { border-left-color: var(--st-rejeitado); opacity: 0.9; }
+
+        .counter { background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
+
+        .comentario-card {
+            font-style: italic;
+            color: #666;
+            background: #f8f9fa;
+            padding: 5px;
+            margin-top: 5px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+        
+        #loadingSpinner { display: none; margin-left: 10px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Gestão Visual das Solicitações de Baixa</h1>
-            <img src="http://i.imgur.com/Fln53Oi.png" alt="Logo">
-        </div>
-    </div>
-    <div class="maintenance-notice">
-        O sistema está com um alto volume de acessos, caso aparecer o erro "504", por favor, atualize a pagina ou acione a equipe de desenvolvimento
-    </div>
 
-    <div class="section filter-container">
-        <label for="unidadeFiltro">Unidade:</label>
-        <select id="unidadeFiltro">
-            <option value="todas">-- Todas --</option>
-            <option value="ABC">ABC</option><option value="TCV">TCV</option><option value="TBL">TBL</option>
-            <option value="TBE">TBE</option><option value="API">API</option><option value="TPA">TPA</option>
-            <option value="TPH">TPH</option><option value="TSJ">TSJ</option><option value="TCA">TCA</option>
-            <option value="TCG">TCG</option><option value="MCD">MCD</option>
-        </select>
+    <div class="top-bar">
+        <div class="brand">
+            <span>📊 Painel de Baixas</span>
+            <span id="loadingSpinner">🔄</span>
+        </div>
         
-        <label for="dataInicioFiltro">De:</label>
-        <input type="date" id="dataInicioFiltro" title="Data de Início">
+        <div class="filters">
+            <label for="filtroUnidade">Unidade:</label>
+            <select id="filtroUnidade" onchange="atualizarKanban()">
+                <option value="todas">Todas</option>
+                <option value="ABC">ABC</option><option value="API">API</option>
+                <option value="MCD">MCD</option><option value="TBE">TBE</option>
+                <option value="TBL">TBL</option><option value="TCA">TCA</option>
+                <option value="TCG">TCG</option><option value="TCV">TCV</option>
+                <option value="TPH">TPH</option><option value="TSJ">TSJ</option>
+            </select>
 
-        <label for="dataFimFiltro">Até:</label>
-        <input type="date" id="dataFimFiltro" title="Data Fim">
+            <label for="filtroDataIni">De:</label>
+            <input type="date" id="filtroDataIni" onchange="atualizarKanban()">
+            
+            <label for="filtroDataFim">Até:</label>
+            <input type="date" id="filtroDataFim" onchange="atualizarKanban()">
 
-        <button onclick="buscarEAtualizarKanban()">Atualizar Dados</button>
-        <button onclick="limparFiltros()" class="btn-secondary">Limpar Filtros</button> <span class="loading" id="loadingSpinner" style="display: none; margin-left: auto;">🔄</span>
-    </div>
-    <div class="loading" id="loadingMessage" style="display: none;">Carregando dados do Kanban...</div>
-
-    <div class="kanban-board-wrapper">
-        <div class="kanban-board">
-            <div class="kanban-column" id="coluna-solicitado"> <h2>Solicitado</h2> </div>
-            <div class="kanban-column" id="coluna-aprovacao-pp"> <h2>Aprovação PP</h2> </div>
-            <div class="kanban-column" id="coluna-aprovacao-log"> <h2>Aprovação Logística</h2> </div>
-            <div class="kanban-column" id="coluna-aprovacao-fin"> <h2>Aprovação Financeira</h2> </div>
-            <div class="kanban-column" id="coluna-baixa-cpd"> <h2>Baixa CPD</h2> </div>
-            <div class="kanban-column" id="coluna-concluido"> <h2>Concluído</h2> </div>
-            <div class="kanban-column" id="coluna-rejeitado"> <h2>Rejeitado</h2> </div>
+            <button onclick="carregarDadosDoFluxo()">Atualizar Dados</button>
+            <button onclick="limparFiltros()">Limpar Filtros</button>
+            <div id="status-msg" style="font-size: 0.8rem; color: #666; font-weight: bold;"></div>
         </div>
     </div>
 
-    <p class="update-time"><small>Última atualização: <span id="lastUpdateTime">Nunca</span></small></p>
-    </div>
+    <div class="kanban-container" id="board">
+        </div>
 
-    <script>
-        const flowUrl = 'https://defaultaf73075ee5864d09b8b3d44b758089.52.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b42da973b6334102a90433cb65b74dce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hvnPf8RyBdTS-ILDY5bE6Rle3Db2HpItaoaDX_M1Beg'; // <<< IMPORTANTE: Cole sua URL aqui
+<script>
+    // =========================================================================
+    // 1. CONFIGURAÇÃO (COLE SUA URL DO POWER AUTOMATE AQUI)
+    // =========================================================================
+    
+    // IMPORTANTE: Substitua a URL abaixo pelo link do seu fluxo "Http Request"
+    const flowUrl = 'https://defaultaf73075ee5864d09b8b3d44b758089.52.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b42da973b6334102a90433cb65b74dce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hvnPf8RyBdTS-ILDY5bE6Rle3Db2HpItaoaDX_M1Beg';
 
-        const mapaColunas = {
-            'Início do Processo': 'coluna-solicitado',
-            'Aprovação Prevenção de Perdas': 'coluna-aprovacao-pp',
-            'Aprovação Logistica Corporativa': 'coluna-aprovacao-log',
-            'Aprovação Diretoria Financeira': 'coluna-aprovacao-fin',
-            'Baixa CPD': 'coluna-baixa-cpd',
-            'Processo Finalizado e Notificado': 'coluna-concluido'
-        };
+    let DADOS_MEMORIA = [];
 
-        async function buscarEAtualizarKanban() {
-            const loadingMessage = document.getElementById('loadingMessage');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            const kanbanWrapper = document.querySelector('.kanban-board-wrapper');
-            loadingMessage.style.display = 'block'; loadingSpinner.style.display = 'inline';
-            kanbanWrapper.style.display = 'none';
+    // =========================================================================
+    // 2. CARREGAMENTO E LIMPEZA
+    // =========================================================================
 
-            try {
-                const response = await fetch(flowUrl);
-                if (!response.ok) throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
-                const solicitacoes = await response.json();
-                if (!Array.isArray(solicitacoes)) {
-                    throw new Error('Formato de dados inválido (esperava lista).');
+    async function carregarDadosDoFluxo() {
+        const msg = document.getElementById('status-msg');
+        const spinner = document.getElementById('loadingSpinner');
+        
+        msg.innerText = "Conectando ao Excel...";
+        msg.style.color = "#0056b3";
+        spinner.style.display = "inline-block";
+
+        try {
+            const response = await fetch(flowUrl);
+            if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+            
+            const json = await response.json();
+            const listaBruta = Array.isArray(json) ? json : (json.value || []);
+
+            if (listaBruta.length === 0) {
+                msg.innerText = "⚠️ Nenhum dado encontrado na planilha.";
+                spinner.style.display = "none";
+                return;
+            }
+
+            // Normalização dos dados
+            DADOS_MEMORIA = listaBruta.map(item => ({
+                id: item['ID_Solicitacao'] || item['ID_x0020_Solicitacao'] || 'N/A',
+                motivo: item['Motivo'] || '',
+                data: item['Timestamp'] || item['DataHora'] || '', 
+                unidade: item['Unidade'] || 'N/A',
+                etapa: item['EtapaProcesso'] || item['Etapa_x0020_Processo'] || '',
+                status: item['Status'] || '',
+                resp: item['Responsavel'] || item['Responsável'] || 'N/A',
+                valor: item['Valor Total'] || item['ValorTotal'] || item['Valor_x0020_Total'] || '',
+                comentario: item['Comentarios'] || item['Comentários'] || ''
+            }));
+
+            msg.innerText = `✅ ${DADOS_MEMORIA.length} registros carregados.`;
+            msg.style.color = "green";
+            
+            atualizarKanban();
+
+        } catch (error) {
+            console.error("Erro no fetch:", error);
+            msg.innerText = "❌ Falha na conexão. Tente novamente.";
+            msg.style.color = "red";
+        } finally {
+            spinner.style.display = "none";
+        }
+    }
+
+    function limparId(id) {
+        return String(id).trim().replace(/[\u200B-\u200D\uFEFF]/g, '');
+    }
+
+    function processarDados(dados) {
+        const mapaSolicitacoes = new Map();
+
+        dados.forEach(log => {
+            const idLimpo = limparId(log.id);
+            if (!idLimpo || idLimpo === 'N/A') return;
+
+            let dataStr = String(log.data).replace(' ', 'T');
+            let dataLog = new Date(dataStr);
+
+            if(isNaN(dataLog)) {
+                const partes = String(log.data).split(' ');
+                if(partes.length > 0 && partes[0].includes('/')) {
+                    const [dia, mes, ano] = partes[0].split('/');
+                    dataStr = `${ano}-${mes}-${dia}T${partes[1] || '00:00:00'}`;
+                    dataLog = new Date(dataStr);
                 }
+            }
+            if(isNaN(dataLog)) dataLog = new Date(0);
 
-                limparColunasKanban();
-                desenharCardsKanban(solicitacoes);
-                
-                // ===== MUDANÇA CHAVE (JS) =====
-                // Chama a nova função de filtro geral
-                aplicarFiltros(); 
-                
-                document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString('pt-BR');
-                loadingMessage.style.display = 'none';
+            if (!mapaSolicitacoes.has(idLimpo)) {
+                mapaSolicitacoes.set(idLimpo, { ...log, id: idLimpo, dataObj: dataLog });
+            } else {
+                const registroExistente = mapaSolicitacoes.get(idLimpo);
+                // Mantém apenas o registro mais recente (maior data)
+                if (dataLog > registroExistente.dataObj) {
+                    const valorPreservado = log.valor || registroExistente.valor;
+                    mapaSolicitacoes.set(idLimpo, { ...log, id: idLimpo, dataObj: dataLog, valor: valorPreservado });
+                }
+            }
+        });
 
-            } catch (error) {
-                console.error('Erro:', error);
-                loadingMessage.textContent = `Falha: ${error.message}. Tente atualizar.`;
-                loadingMessage.style.color = 'red'; loadingMessage.style.display = 'block';
-                limparColunasKanban();
-            } finally {
-                loadingSpinner.style.display = 'none';
-                kanbanWrapper.style.display = 'block';
+        return Array.from(mapaSolicitacoes.values());
+    }
+
+    // =========================================================================
+    // 3. REGRA DE NEGÓCIO: TRANSIÇÃO DE ESTADOS
+    // =========================================================================
+
+    function determinarColunaDestino(solicitacao) {
+        // Normaliza textos para evitar erros de maiúsculas/minúsculas
+        const status = String(solicitacao.status || '').toLowerCase();
+        const etapa = String(solicitacao.etapa || '').toLowerCase();
+
+        // 1. Prioridade: Rejeição
+        // Se foi rejeitado em QUALQUER etapa, vai para a coluna de rejeitados
+        if (status.includes('reject') || status.includes('reprovado') || status.includes('rejeitado')) {
+            return 'col-rejeitado';
+        }
+
+        // 2. Prioridade: Conclusão
+        // Se o status diz que acabou, vai para o fim
+        if (status.includes('baixa concluída') || status.includes('concluído') || status.includes('finalizado')) {
+            return 'col-concluido';
+        }
+
+        // 3. Regra de Transição (Aprovou -> Próxima Coluna)
+        // Se a etapa atual foi "Aprovada", significa que ela ACABOU e vai para a PRÓXIMA.
+        
+        if (status.includes('approve') || status.includes('aprovado')) {
+            
+            // Aprovou PP -> Vai para Logística
+            if (etapa.includes('prevenção') || etapa.includes('prevencao')) {
+                return 'col-aprov-log'; 
+            }
+            
+            // Aprovou Logística -> Vai para Financeiro
+            if (etapa.includes('logistica') || etapa.includes('logística')) {
+                return 'col-aprov-fin'; 
+            }
+            
+            // Aprovou Financeiro -> Vai para Baixa CPD
+            if (etapa.includes('financeira')) {
+                return 'col-baixa-cpd'; 
+            }
+            
+            // Aprovou Baixa CPD (caso raro, geralmente status é 'Concluído')
+            // Se cair aqui, assumimos concluído
+            if (etapa.includes('baixa') || etapa.includes('cpd')) {
+                return 'col-concluido'; 
             }
         }
 
-        function limparColunasKanban() {
-            document.querySelectorAll('.kanban-column').forEach(coluna => {
-                coluna.querySelectorAll('.kanban-card').forEach(card => card.remove());
-            });
+        // 4. Default: Se não foi aprovado ainda (status "Criado", "Pendente" etc)
+        // O card fica na coluna da etapa atual aguardando ação.
+
+        if (etapa.includes('prevenção') || etapa.includes('prevencao')) return 'col-aprov-pp';
+        if (etapa.includes('logistica') || etapa.includes('logística')) return 'col-aprov-log';
+        if (etapa.includes('financeira')) return 'col-aprov-fin';
+        if (etapa.includes('cpd') || etapa.includes('baixa')) return 'col-baixa-cpd';
+        
+        // Se for Início do Processo e não aprovado ainda, fica no Solicitado
+        return 'col-solicitado';
+    }
+
+    // =========================================================================
+    // 4. RENDERIZAÇÃO
+    // =========================================================================
+
+    function desenharQuadro(listaSolicitacoes) {
+        const board = document.getElementById('board');
+        board.innerHTML = '';
+
+        const colunasEstrutura = [
+            { id: 'col-solicitado', titulo: 'Solicitado' },
+            { id: 'col-aprov-pp', titulo: 'Aprovação PP' },
+            { id: 'col-aprov-log', titulo: 'Aprov. Logística' },
+            { id: 'col-aprov-fin', titulo: 'Aprov. Financeira' },
+            { id: 'col-baixa-cpd', titulo: 'Baixa CPD' },
+            { id: 'col-concluido', titulo: 'Concluído' },
+            { id: 'col-rejeitado', titulo: 'Rejeitado' }
+        ];
+
+        const elementosColunas = {};
+        colunasEstrutura.forEach(col => {
+            const divCol = document.createElement('div');
+            divCol.className = `column ${col.id}`;
+            divCol.innerHTML = `
+                <div class="column-header">
+                    <span>${col.titulo}</span>
+                    <span class="counter" id="count-${col.id}">0</span>
+                </div>
+                <div class="column-body" id="body-${col.id}"></div>
+            `;
+            board.appendChild(divCol);
+            elementosColunas[col.id] = divCol.querySelector('.column-body');
+        });
+
+        const contadores = {};
+        colunasEstrutura.forEach(c => contadores[c.id] = 0);
+
+        listaSolicitacoes.forEach(sol => {
+            const idCol = determinarColunaDestino(sol);
+            if (elementosColunas[idCol]) {
+                const card = criarHTMLCard(sol);
+                elementosColunas[idCol].appendChild(card);
+                contadores[idCol]++;
+            }
+        });
+
+        Object.keys(contadores).forEach(key => {
+            const span = document.getElementById(`count-${key}`);
+            if(span) span.innerText = contadores[key];
+        });
+    }
+
+    function criarHTMLCard(sol) {
+        const div = document.createElement('div');
+        div.className = 'card';
+        
+        const url = `https://triunfantecombr.sharepoint.com/sites/Evidncias_PP/Documentos Compartilhados/${sol.unidade}/${sol.id}-${sol.unidade}/${sol.id}.html`;
+        div.onclick = () => window.open(url, '_blank');
+
+        let htmlValor = '';
+        if (sol.valor) {
+            const valLimpo = String(sol.valor).replace('R$', '').trim().replace(',', '.');
+            const valNum = parseFloat(valLimpo);
+            if (!isNaN(valNum)) {
+                htmlValor = `<div class="card-price">${valNum.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</div>`;
+            } else {
+                htmlValor = `<div class="card-price">${sol.valor}</div>`;
+            }
         }
 
-        function desenharCardsKanban(solicitacoes) {
-            if (!Array.isArray(solicitacoes)) return;
+        const dataFormatada = sol.dataObj.getFullYear() > 2000 
+            ? sol.dataObj.toLocaleDateString('pt-BR') + ' ' + sol.dataObj.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) 
+            : sol.data;
 
-            solicitacoes.forEach(sol => {
-                let colunaId;
-                const isRejeitado = sol.Status === 'Reject' || sol.Status === 'Rejected';
-                const isConcluido = sol.EtapaProcesso === 'Processo Finalizado e Notificado' || sol.Status === 'Concluído' || sol.Status === 'Baixa Concluída e NF Anexada';
+        let htmlComent = '';
+        if (sol.comentario && sol.comentario.trim().length > 0) {
+            htmlComent = `<div class="comentario-card">"${sol.comentario}"</div>`;
+        }
 
-                if (isRejeitado) colunaId = 'coluna-rejeitado';
-                else if (isConcluido) colunaId = 'coluna-concluido';
-                else colunaId = mapaColunas[sol.EtapaProcesso] || 'coluna-solicitado';
+        div.innerHTML = `
+            <div class="card-header">
+                <span class="card-id">${sol.id}</span>
+                <span class="card-unidade">${sol.unidade}</span>
+            </div>
+            <div class="card-body">
+                <p><span class="label">Resp:</span> ${sol.resp}</p>
+                <p><span class="label">Motivo:</span> ${sol.motivo}</p>
+                ${htmlValor}
+                ${htmlComent}
+            </div>
+            <div class="card-footer">
+                📅 ${dataFormatada}
+            </div>
+        `;
+        return div;
+    }
 
-                const colunaElement = document.getElementById(colunaId);
+    // =========================================================================
+    // 5. EVENTOS
+    // =========================================================================
 
-                if (colunaElement) {
-                    const cardLink = document.createElement('a');
-                    cardLink.className = 'kanban-card';
-                    cardLink.href = sol.UrlHtmlSolicitacao || '#';
-                    cardLink.target = '_blank';
+    function atualizarKanban() {
+        const unidadeSel = document.getElementById('filtroUnidade').value;
+        const dataIni = document.getElementById('filtroDataIni').value;
+        const dataFim = document.getElementById('filtroDataFim').value;
 
-                    // ===== MUDANÇAS CHAVE (JS) =====
-                    // Adiciona os atributos de dados para filtragem
-                    cardLink.setAttribute('data-unidade', sol.Unidade || 'N/A');
-                    cardLink.setAttribute('data-timestamp', sol.Timestamp || 'N/A'); // NOVO
+        const listaUnica = processarDados(DADOS_MEMORIA);
 
-                    if (isRejeitado) cardLink.classList.add('rejeitado-card');
-                    if (isConcluido) cardLink.classList.add('concluido-card');
-
-                    let dataFormatada = 'N/A';
-                    if (sol.Timestamp) { 
-                        try { 
-                            const dataObj = new Date(sol.Timestamp); 
-                            if (!isNaN(dataObj.getTime())) { 
-                                dataFormatada = dataObj.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); 
-                            } 
-                        } catch (e) { 
-                            console.warn("Erro data:", sol.Timestamp, e); 
-                        } 
-                    }
-
-                    const comentariosSanitizados = (sol.Comentarios || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-                    cardLink.innerHTML = `
-                        <div class="info-line"><strong>ID:</strong> ${sol.ID_Solicitacao || 'N/A'}</div>
-                        <div class="info-line"><strong>Unidade:</strong> ${sol.Unidade || 'N/A'}</div>
-                        <div class="info-line"><strong>${sol.EtapaProcesso === 'coluna-solicitado' || sol.EtapaProcesso === 'Início do Processo' ? 'Solicitante:' : 'Últ. Resp.:'}</strong> ${sol.Solicitante || 'N/A'}</div>
-                        <div class="info-line"><strong>Motivo:</strong> ${sol.Motivo || 'N/A'}</div>
-                        ${(comentariosSanitizados && comentariosSanitizados.trim() !== '') ? `<div class="comentarios"><strong>Coment.:</strong> ${comentariosSanitizados}</div>` : ''}
-                        <small>Atualizado: ${dataFormatada}</small>
-                    `;
-                    colunaElement.appendChild(cardLink);
-                } else {
-                    console.warn(`Coluna HTML '${colunaId}' não encontrada para '${sol.EtapaProcesso}' (ID: ${sol.ID_Solicitacao})`);
+        const listaFiltrada = listaUnica.filter(sol => {
+            if (unidadeSel !== 'todas' && sol.unidade !== unidadeSel) return false;
+            if (dataIni || dataFim) {
+                const dSol = sol.dataObj;
+                dSol.setHours(0,0,0,0);
+                if (dataIni) {
+                    const dIni = new Date(dataIni + 'T00:00:00');
+                    dIni.setHours(0,0,0,0);
+                    if (dSol < dIni) return false;
                 }
-            });
-        }
-
-        // ===== FUNÇÃO DE FILTRO NOVA E UNIFICADA (JS) =====
-        function aplicarFiltros() {
-            const unidadeSelecionada = document.getElementById('unidadeFiltro').value;
-            const dataInicioVal = document.getElementById('dataInicioFiltro').value;
-            const dataFimVal = document.getElementById('dataFimFiltro').value;
-            
-            // Cria objetos Date. 'T00:00:00' e 'T23:59:59' garantem que o dia inteiro seja incluído.
-            const dataInicioObj = dataInicioVal ? new Date(dataInicioVal + 'T00:00:00') : null;
-            const dataFimObj = dataFimVal ? new Date(dataFimVal + 'T23:59:59') : null;
-
-            const cards = document.querySelectorAll('.kanban-card'); 
-
-            cards.forEach(card => {
-                const unidadeCard = card.getAttribute('data-unidade');
-                const timestampCard = card.getAttribute('data-timestamp');
-                const cardDateObj = (timestampCard && timestampCard !== 'N/A') ? new Date(timestampCard) : null;
-
-                let mostrar = true; // Começa assumindo que o card será mostrado
-
-                // 1. Verifica Filtro de Unidade
-                if (unidadeSelecionada !== 'todas' && (unidadeCard && unidadeCard.trim().toUpperCase() !== unidadeSelecionada.trim().toUpperCase())) {
-                    mostrar = false;
+                if (dataFim) {
+                    const dFim = new Date(dataFim + 'T00:00:00');
+                    dFim.setHours(0,0,0,0);
+                    if (dSol > dFim) return false;
                 }
+            }
+            return true;
+        });
 
-                // 2. Verifica Filtro de Data (só se o card tiver uma data válida)
-                if (cardDateObj) {
-                    // Se tem data de início e o card é anterior a ela, esconde
-                    if (dataInicioObj && cardDateObj < dataInicioObj) {
-                        mostrar = false;
-                    }
-                    // Se tem data de fim e o card é posterior a ela, esconde
-                    if (dataFimObj && cardDateObj > dataFimObj) {
-                        mostrar = false;
-                    }
-                } else {
-                    // Se o card NÃO tem data, mas o usuário está filtrando por data, esconde
-                    if (dataInicioObj || dataFimObj) {
-                        mostrar = false; 
-                    }
-                }
-
-                // Aplica a visibilidade
-                card.style.display = mostrar ? 'block' : 'none';
-            });
+        desenharQuadro(listaFiltrada);
+        
+        const msg = document.getElementById('status-msg');
+        if(DADOS_MEMORIA.length > 0) {
+            msg.innerText = `Exibindo ${listaFiltrada.length} solicitações.`;
         }
+    }
 
-        // ===== FUNÇÃO NOVA PARA LIMPAR FILTROS (JS) =====
-        function limparFiltros() {
-            document.getElementById('unidadeFiltro').value = 'todas';
-            document.getElementById('dataInicioFiltro').value = '';
-            document.getElementById('dataFimFiltro').value = '';
-            
-            // Re-executa a filtragem (que agora mostrará tudo)
-            aplicarFiltros();
-        }
+    function limparFiltros() {
+        document.getElementById('filtroUnidade').value = 'todas';
+        document.getElementById('filtroDataIni').value = '';
+        document.getElementById('filtroDataFim').value = '';
+        atualizarKanban();
+    }
 
-        // ===== ATUALIZA OS EVENT LISTENERS (JS) =====
-        document.getElementById('unidadeFiltro').addEventListener('change', aplicarFiltros);
-        document.getElementById('dataInicioFiltro').addEventListener('change', aplicarFiltros); // NOVO
-        document.getElementById('dataFimFiltro').addEventListener('change', aplicarFiltros); // NOVO
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarDadosDoFluxo();
+    });
 
-        document.addEventListener('DOMContentLoaded', buscarEAtualizarKanban);
-    </script>
+</script>
 
 </body>
 </html>
