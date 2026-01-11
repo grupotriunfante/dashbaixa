@@ -1,556 +1,108 @@
-
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Integrado - Grupo Triunfante</title>
+    <title>Redirecionamento - Baixa de Estoque</title>
     <style>
-        :root {
-            --primary: #0056b3;
-            --bg-body: #f4f6f9;
-            --bg-card: #ffffff;
-            --border: #dee2e6;
-            --text-main: #343a40;
-            --text-muted: #6c757d;
-            
-            /* Cores dos Status */
-            --st-solicitado: #17a2b8; /* Azul Claro */
-            --st-aprov-pp: #ffc107;   /* Amarelo */
-            --st-aprov-log: #fd7e14;  /* Laranja */
-            --st-aprov-fin: #6f42c1;  /* Roxo */
-            --st-baixa-cpd: #007bff;  /* Azul Forte */
-            --st-concluido: #28a745;  /* Verde */
-            --st-rejeitado: #dc3545;  /* Vermelho */
-        }
-
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
-            padding: 20px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
+            color: #333;
         }
 
-        /* --- Header & Filtros --- */
-        .top-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-            background: var(--bg-card);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-
-        .brand {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--primary);
-            margin-right: auto;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .filters {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        select, input[type="date"] {
-            padding: 8px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            color: var(--text-main);
-        }
-
-        button {
-            background-color: var(--text-main);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button:hover { background-color: #23272b; }
-        
-        /* --- Kanban Board --- */
-        .kanban-container {
-            display: flex;
-            overflow-x: auto;
-            gap: 15px;
-            flex-grow: 1;
-            padding-bottom: 10px;
-        }
-
-        .column {
-            min-width: 280px;
-            width: 280px;
-            background-color: #e9ecef;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            max-height: 100%;
-        }
-
-        .column-header {
-            padding: 12px;
-            font-weight: bold;
-            text-align: center;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .column-body {
-            padding: 10px;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-
-        /* --- Cards --- */
         .card {
-            background: var(--bg-card);
-            border-radius: 4px;
-            padding: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            cursor: pointer;
-            border-left: 4px solid transparent;
-            transition: transform 0.2s, box-shadow 0.2s;
+            background-color: #fff;
+            width: 100%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            text-align: center;
         }
 
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-        }
-
-        .card-id { font-weight: bold; color: var(--text-main); }
-        .card-unidade { font-weight: bold; padding: 2px 6px; background: #eee; border-radius: 4px; font-size: 0.75rem; }
-
-        .card-body p { margin: 4px 0; font-size: 0.9rem; }
-        .label { font-weight: 600; font-size: 0.8rem; color: #555; }
-        
-        .card-price {
-            margin-top: 8px;
+        .header {
+            background-color: #4A148C; /* Roxo similar ao do seu sistema (MD) */
+            color: white;
+            padding: 20px;
+            font-size: 24px;
             font-weight: bold;
-            color: var(--st-concluido);
-            text-align: right;
-            font-size: 0.95rem;
         }
 
-        .card-footer {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed #eee;
-            font-size: 0.75rem;
-            color: #999;
-            text-align: right;
+        .content {
+            padding: 30px;
         }
 
-        /* Estilos Específicos das Colunas */
-        .col-solicitado .column-header { background-color: var(--st-solicitado); }
-        .col-solicitado .card { border-left-color: var(--st-solicitado); }
-
-        .col-aprov-pp .column-header { background-color: var(--st-aprov-pp); color: #444; }
-        .col-aprov-pp .card { border-left-color: var(--st-aprov-pp); }
-
-        .col-aprov-log .column-header { background-color: var(--st-aprov-log); }
-        .col-aprov-log .card { border-left-color: var(--st-aprov-log); }
-
-        .col-aprov-fin .column-header { background-color: var(--st-aprov-fin); }
-        .col-aprov-fin .card { border-left-color: var(--st-aprov-fin); }
-
-        .col-baixa-cpd .column-header { background-color: var(--st-baixa-cpd); }
-        .col-baixa-cpd .card { border-left-color: var(--st-baixa-cpd); }
-
-        .col-concluido .column-header { background-color: var(--st-concluido); }
-        .col-concluido .column-body { background-color: #e6f9ed; }
-        .col-concluido .card { border-left-color: var(--st-concluido); opacity: 0.9; }
-
-        .col-rejeitado .column-header { background-color: var(--st-rejeitado); }
-        .col-rejeitado .column-body { background-color: #fce8e8; }
-        .col-rejeitado .card { border-left-color: var(--st-rejeitado); opacity: 0.9; }
-
-        .counter { background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
-
-        .comentario-card {
-            font-style: italic;
-            color: #666;
-            background: #f8f9fa;
-            padding: 5px;
-            margin-top: 5px;
-            border-radius: 3px;
-            font-size: 0.8rem;
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 25px;
         }
-        
-        #loadingSpinner { display: none; margin-left: 10px; }
+
+        .btn-link {
+            display: inline-block;
+            background-color: #00838F; /* Azul/Verde similar ao botão do print */
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-link:hover {
+            background-color: #006064;
+        }
+
+        .instruction-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .screenshot {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <div class="brand">
-            <span>📊 Painel de Baixas</span>
-            <span id="loadingSpinner">🔄</span>
+    <div class="card">
+        <div class="header">
+            Atenção: Mudança de Processo
         </div>
-        
-        <div class="filters">
-            <label for="filtroUnidade">Unidade:</label>
-            <select id="filtroUnidade" onchange="atualizarKanban()">
-                <option value="todas">Todas</option>
-                <option value="ABC">ABC</option><option value="API">API</option>
-                <option value="MCD">MCD</option><option value="TBE">TBE</option>
-                <option value="TBL">TBL</option><option value="TCA">TCA</option>
-                <option value="TCG">TCG</option><option value="TCV">TCV</option>
-                <option value="TPH">TPH</option><option value="TSJ">TSJ</option>
-            </select>
 
-            <label for="filtroDataIni">De:</label>
-            <input type="date" id="filtroDataIni" onchange="atualizarKanban()">
+        <div class="content">
+            <p>O processo de <strong>Solicitação de Baixa de Estoque</strong> está em uma nova página.</p>
             
-            <label for="filtroDataFim">Até:</label>
-            <input type="date" id="filtroDataFim" onchange="atualizarKanban()">
+            <p>Acesse o link abaixo para realizar sua solicitação:</p>
 
-            <button onclick="carregarDadosDoFluxo()">Atualizar Dados</button>
-            <button onclick="limparFiltros()">Limpar Filtros</button>
-            <div id="status-msg" style="font-size: 0.8rem; color: #666; font-weight: bold;"></div>
+            <a href="https://drivetriunfante.com.br/index.php?r=space%2Fspace%2Fhome&cguid=422f3835-7cf1-4c57-b084-37d92b9b41e5" class="btn-link" target="_blank">
+                Acessar Nova Página de Solicitação
+            </a>
+
+            <div class="instruction-box">
+                <strong>Importante:</strong> Para acessar o espaço, clique em <strong>"Participar"</strong>, conforme destacado na imagem abaixo.
+            </div>
+
+            <img src="https://i.imgur.com/zFqL7W1.png" alt="Instrução para clicar em Participar" class="screenshot">
         </div>
     </div>
 
-    <div class="kanban-container" id="board">
-        </div>
-
-<script>
-    // =========================================================================
-    // 1. CONFIGURAÇÃO
-    // =========================================================================
-    const flowUrl = 'https://defaultaf73075ee5864d09b8b3d44b758089.52.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b42da973b6334102a90433cb65b74dce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=hvnPf8RyBdTS-ILDY5bE6Rle3Db2HpItaoaDX_M1Beg';
-    
-    let DADOS_MEMORIA = [];
-
-    // --- FUNÇÃO 1: LIMPEZA DE TEXTO (Resolve o problema das colunas erradas) ---
-    function normalizarTexto(texto) {
-        if (!texto) return "";
-        return String(texto)
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "") // Remove acentos
-            .toLowerCase()
-            .trim();
-    }
-
-    // --- FUNÇÃO 2: CONVERSOR DE DATA EXCEL (Resolve o problema "45952") ---
-    function converterDataExcel(serial) {
-        // Se já for string com barra ou traço, tenta converter direto
-        if (String(serial).includes('/') || String(serial).includes('-')) {
-            return new Date(serial); // Deixa o JS tentar
-        }
-        
-        // Se for número (ex: 45952.525)
-        const numero = parseFloat(serial);
-        if (!isNaN(numero) && numero > 30000) { // Maior que 30000 garante que é data recente
-           // O Excel começa em 30/12/1899. O JS trabalha em milissegundos.
-           // 25569 é a diferença de dias entre 1970 e 1900
-           const utc_days  = Math.floor(numero - 25569);
-           const utc_value = utc_days * 86400;                                      
-           const date_info = new Date(utc_value * 1000);
-
-           // Ajuste fino para horas/minutos (fração do dia)
-           const fractional_day = numero - Math.floor(numero) + 0.0000001;
-           const total_seconds = Math.floor(86400 * fractional_day);
-           const seconds = total_seconds % 60;
-           const minutes = Math.floor(total_seconds / 60) % 60;
-           const hours = Math.floor(total_seconds / (60 * 60));
-
-           return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), hours, minutes, seconds);
-        }
-        
-        return new Date(serial); // Fallback
-    }
-
-    // =========================================================================
-    // 2. CARREGAMENTO
-    // =========================================================================
-    async function carregarDadosDoFluxo() {
-        const msg = document.getElementById('status-msg');
-        const spinner = document.getElementById('loadingSpinner');
-        
-        msg.innerText = "Conectando...";
-        msg.style.color = "#0056b3";
-        spinner.style.display = "inline-block";
-
-        try {
-            const urlSemCache = flowUrl + "&_t=" + new Date().getTime(); 
-            const response = await fetch(urlSemCache);
-            if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-            
-            const json = await response.json();
-            const listaBruta = Array.isArray(json) ? json : (json.value || []);
-
-            if (listaBruta.length === 0) {
-                msg.innerText = "⚠️ Nenhum dado.";
-                spinner.style.display = "none";
-                return;
-            }
-
-            DADOS_MEMORIA = listaBruta.map(item => ({
-                id: item['ID_Solicitacao'] || item['ID_x0020_Solicitacao'] || 'N/A',
-                motivo: item['Motivo'] || '',
-                // AQUI A MÁGICA DA DATA: Passamos o dado cru para nossa função inteligente
-                dataRaw: item['Timestamp'] || item['DataHora'] || '', 
-                unidade: item['Unidade'] || 'N/A',
-                etapa: item['EtapaProcesso'] || item['Etapa_x0020_Processo'] || '',
-                status: item['Status'] || '',
-                resp: item['Responsavel'] || item['Responsável'] || 'N/A',
-                valor: item['Valor Total'] || item['ValorTotal'] || item['Valor_x0020_Total'] || '',
-                comentario: item['Comentarios'] || item['Comentários'] || ''
-            }));
-
-            msg.innerText = `✅ ${DADOS_MEMORIA.length} registros.`;
-            msg.style.color = "green";
-            
-            atualizarKanban();
-
-        } catch (error) {
-            console.error("Erro:", error);
-            msg.innerText = "❌ Falha na conexão.";
-            msg.style.color = "red";
-        } finally {
-            spinner.style.display = "none";
-        }
-    }
-
-    function processarDados(dados) {
-        const mapaSolicitacoes = new Map();
-
-        dados.forEach(log => {
-            const idLimpo = String(log.id).trim();
-            if (!idLimpo || idLimpo === 'N/A') return;
-
-            // Usa a função conversora inteligente
-            let dataLog = converterDataExcel(log.dataRaw);
-            
-            // Validação final de sanidade da data
-            if (isNaN(dataLog.getTime())) dataLog = new Date(0); 
-
-            if (!mapaSolicitacoes.has(idLimpo)) {
-                mapaSolicitacoes.set(idLimpo, { ...log, id: idLimpo, dataObj: dataLog });
-            } else {
-                const registroExistente = mapaSolicitacoes.get(idLimpo);
-                if (dataLog > registroExistente.dataObj) {
-                    const valorPreservado = log.valor || registroExistente.valor;
-                    mapaSolicitacoes.set(idLimpo, { ...log, id: idLimpo, dataObj: dataLog, valor: valorPreservado });
-                }
-            }
-        });
-
-        return Array.from(mapaSolicitacoes.values());
-    }
-
-    // =========================================================================
-    // 3. REGRA DE NEGÓCIO (BLINDADA)
-    // =========================================================================
-
-    function determinarColunaDestino(solicitacao) {
-        // Normalizamos tudo para evitar erros de acento ou Case Sensitive
-        const status = normalizarTexto(solicitacao.status);
-        const etapa = normalizarTexto(solicitacao.etapa);
-
-        // 1. Rejeição
-        if (status.includes('reject') || status.includes('reprovado') || status.includes('rejeitado')) {
-            return 'col-rejeitado';
-        }
-
-        // 2. Conclusão
-        if (status.includes('conclui') || status.includes('finalizado') || status.includes('encerrado')) {
-            return 'col-concluido';
-        }
-
-        // 3. Aprovações (Transição de Coluna)
-        if (status.includes('approve') || status.includes('aprovado')) {
-            if (etapa.includes('prevencao')) return 'col-aprov-log'; 
-            if (etapa.includes('logistica')) return 'col-aprov-fin'; 
-            if (etapa.includes('financeira')) return 'col-baixa-cpd'; 
-            if (etapa.includes('baixa') || etapa.includes('cpd')) return 'col-concluido'; 
-        }
-
-        // 4. Aguardando na Coluna Atual
-        if (etapa.includes('prevencao')) return 'col-aprov-pp';
-        if (etapa.includes('logistica')) return 'col-aprov-log';
-        if (etapa.includes('financeira')) return 'col-aprov-fin';
-        if (etapa.includes('cpd') || etapa.includes('baixa')) return 'col-baixa-cpd';
-        
-        return 'col-solicitado';
-    }
-
-    // =========================================================================
-    // 4. RENDERIZAÇÃO
-    // =========================================================================
-
-    function desenharQuadro(listaSolicitacoes) {
-        const board = document.getElementById('board');
-        board.innerHTML = '';
-
-        const colunasEstrutura = [
-            { id: 'col-solicitado', titulo: 'Solicitado' },
-            { id: 'col-aprov-pp', titulo: 'Aprovação PP' },
-            { id: 'col-aprov-log', titulo: 'Aprov. Logística' },
-            { id: 'col-aprov-fin', titulo: 'Aprov. Financeira' },
-            { id: 'col-baixa-cpd', titulo: 'Baixa CPD' },
-            { id: 'col-concluido', titulo: 'Concluído' },
-            { id: 'col-rejeitado', titulo: 'Rejeitado' }
-        ];
-
-        const elementosColunas = {};
-        colunasEstrutura.forEach(col => {
-            const divCol = document.createElement('div');
-            divCol.className = `column ${col.id}`;
-            divCol.innerHTML = `
-                <div class="column-header">
-                    <span>${col.titulo}</span>
-                    <span class="counter" id="count-${col.id}">0</span>
-                </div>
-                <div class="column-body" id="body-${col.id}"></div>
-            `;
-            board.appendChild(divCol);
-            elementosColunas[col.id] = divCol.querySelector('.column-body');
-        });
-
-        const contadores = {};
-        colunasEstrutura.forEach(c => contadores[c.id] = 0);
-
-        listaSolicitacoes.forEach(sol => {
-            const idCol = determinarColunaDestino(sol);
-            if (elementosColunas[idCol]) {
-                const card = criarHTMLCard(sol);
-                elementosColunas[idCol].appendChild(card);
-                contadores[idCol]++;
-            }
-        });
-
-        Object.keys(contadores).forEach(key => {
-            const span = document.getElementById(`count-${key}`);
-            if(span) span.innerText = contadores[key];
-        });
-    }
-
-    function criarHTMLCard(sol) {
-        const div = document.createElement('div');
-        div.className = 'card';
-        // Link SharePoint
-        const url = `https://triunfantecombr.sharepoint.com/sites/Evidncias_PP/Documentos Compartilhados/${sol.unidade}/${sol.id}-${sol.unidade}/${sol.id}.html`;
-        div.onclick = () => window.open(url, '_blank');
-
-        let htmlValor = '';
-        if (sol.valor) {
-            const valLimpo = String(sol.valor).replace('R$', '').trim().replace(',', '.');
-            const valNum = parseFloat(valLimpo);
-            if (!isNaN(valNum)) {
-                htmlValor = `<div class="card-price">${valNum.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</div>`;
-            } else {
-                htmlValor = `<div class="card-price">${sol.valor}</div>`;
-            }
-        }
-
-        // Formatação da Data (Dia/Mes/Ano Hora:Min)
-        const d = sol.dataObj;
-        const dataFormatada = (d instanceof Date && !isNaN(d))
-             ? d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) 
-             : "Data Inválida";
-
-        let htmlComent = '';
-        if (sol.comentario && sol.comentario.trim().length > 0) {
-            htmlComent = `<div class="comentario-card">"${sol.comentario}"</div>`;
-        }
-
-        div.innerHTML = `
-            <div class="card-header">
-                <span class="card-id">${sol.id}</span>
-                <span class="card-unidade">${sol.unidade}</span>
-            </div>
-            <div class="card-body">
-                <p><span class="label">Resp:</span> ${sol.resp}</p>
-                <p><span class="label">Motivo:</span> ${sol.motivo}</p>
-                ${htmlValor}
-                ${htmlComent}
-            </div>
-            <div class="card-footer">
-                📅 ${dataFormatada}
-            </div>
-        `;
-        return div;
-    }
-
-    // =========================================================================
-    // 5. EVENTOS
-    // =========================================================================
-    function atualizarKanban() {
-        const unidadeSel = document.getElementById('filtroUnidade').value;
-        const dataIni = document.getElementById('filtroDataIni').value;
-        const dataFim = document.getElementById('filtroDataFim').value;
-
-        const listaUnica = processarDados(DADOS_MEMORIA);
-
-        const listaFiltrada = listaUnica.filter(sol => {
-            if (unidadeSel !== 'todas' && sol.unidade !== unidadeSel) return false;
-            
-            if (dataIni || dataFim) {
-                const dSol = new Date(sol.dataObj); 
-                dSol.setHours(0,0,0,0);
-                
-                if (dataIni) {
-                    const dIni = new Date(dataIni + 'T00:00:00');
-                    if (dSol < dIni) return false;
-                }
-                if (dataFim) {
-                    const dFim = new Date(dataFim + 'T00:00:00');
-                    if (dSol > dFim) return false;
-                }
-            }
-            return true;
-        });
-
-        desenharQuadro(listaFiltrada);
-        
-        const msg = document.getElementById('status-msg');
-        if(DADOS_MEMORIA.length > 0) {
-            msg.innerText = `Exibindo ${listaFiltrada.length} solicitações.`;
-        }
-    }
-
-    function limparFiltros() {
-        document.getElementById('filtroUnidade').value = 'todas';
-        document.getElementById('filtroDataIni').value = '';
-        document.getElementById('filtroDataFim').value = '';
-        atualizarKanban();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        carregarDadosDoFluxo();
-    });
-
-</script>
+</body>
+</html>
