@@ -34,28 +34,6 @@
             box-sizing: border-box;
         }
 
-        /* --- Estilo do Banner de Migração --- */
-        .migration-banner {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-            padding: 15px;
-            text-align: center;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            font-size: 1rem;
-        }
-        .migration-banner a {
-            color: #856404;
-            font-weight: bold;
-            text-decoration: underline;
-            margin-left: 5px;
-        }
-        .migration-banner a:hover {
-            color: #533f03;
-        }
-
         /* --- Header & Filtros --- */
         .top-bar {
             display: flex;
@@ -290,13 +268,13 @@
             .trim();
     }
 
-    // --- FUNÇÃO 2: CONVERSOR DE DATA EXCEL ---
+    // --- FUNÇÃO 2: CONVERSOR DE DATA EXCEL (CORRIGIDA) ---
     function converterDataExcel(serial) {
-        if (String(serial).includes('/') || String(serial).includes('-')) {
-            return new Date(serial);
-        }
+        if (!serial) return new Date(0); // Retorna data antiga se vazio
+
+        // Tenta converter serial numérico do Excel
         const numero = parseFloat(serial);
-        if (!isNaN(numero) && numero > 30000) {
+        if (!isNaN(numero) && numero > 30000 && String(serial).indexOf('-') === -1 && String(serial).indexOf('/') === -1) {
             const utc_days = Math.floor(numero - 25569);
             const utc_value = utc_days * 86400;
             const date_info = new Date(utc_value * 1000);
@@ -309,7 +287,19 @@
 
             return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), hours, minutes, seconds);
         }
-        return new Date(serial);
+
+        // Correção para formato texto ISO "YYYY-MM-DD HH:mm:ss" que o Power Automate às vezes envia
+        // Substitui o espaço por T para garantir compatibilidade com new Date() em todos navegadores
+        let textoData = String(serial).trim();
+        if (textoData.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)) {
+            textoData = textoData.replace(' ', 'T');
+        }
+
+        const dataObj = new Date(textoData);
+        if (isNaN(dataObj.getTime())) {
+            return new Date(0); // Data inválida vira data muito antiga
+        }
+        return dataObj;
     }
 
     // =========================================================================
@@ -335,6 +325,7 @@
                 return;
             }
 
+            // Mapeamento Robusto: Tenta pegar o campo normal ou com _x0020_ (espaço codificado)
             DADOS_MEMORIA = listaBruta.map(item => ({
                 id: item['ID_Solicitacao'] || item['ID_x0020_Solicitacao'] || 'N/A',
                 motivo: item['Motivo'] || '',
@@ -347,7 +338,7 @@
                 comentario: item['Comentarios'] || item['Comentários'] || ''
             }));
 
-            msg.innerText = `✅ ${DADOS_MEMORIA.length} registros.`;
+            msg.innerText = `✅ ${DADOS_MEMORIA.length} registros processados.`;
             msg.style.color = "green";
             atualizarKanban();
 
@@ -368,13 +359,15 @@
             if (!idLimpo || idLimpo === 'N/A') return;
 
             let dataLog = converterDataExcel(log.dataRaw);
-            if (isNaN(dataLog.getTime())) dataLog = new Date(0);
-
+            
+            // Lógica para pegar sempre o registro mais recente (maior data)
             if (!mapaSolicitacoes.has(idLimpo)) {
                 mapaSolicitacoes.set(idLimpo, { ...log, id: idLimpo, dataObj: dataLog });
             } else {
                 const registroExistente = mapaSolicitacoes.get(idLimpo);
+                // Se a data atual for maior que a do registro que já temos, atualiza
                 if (dataLog > registroExistente.dataObj) {
+                    // Preserva o valor se o novo registro não tiver valor (ex: aprovação pode não ter valor preenchido de novo)
                     const valorPreservado = log.valor || registroExistente.valor;
                     mapaSolicitacoes.set(idLimpo, { ...log, id: idLimpo, dataObj: dataLog, valor: valorPreservado });
                 }
@@ -392,22 +385,27 @@
         const status = normalizarTexto(solicitacao.status);
         const etapa = normalizarTexto(solicitacao.etapa);
 
+        // Prioridade para Rejeitados
         if (status.includes('reject') || status.includes('reprovado') || status.includes('rejeitado')) {
             return 'col-rejeitado';
         }
+        // Prioridade para Concluídos
         if (status.includes('conclui') || status.includes('finalizado') || status.includes('encerrado')) {
             return 'col-concluido';
         }
+        // Se foi Aprovado em alguma etapa
         if (status.includes('approve') || status.includes('aprovado')) {
-            if (etapa.includes('prevencao')) return 'col-aprov-log';
-            if (etapa.includes('logistica')) return 'col-aprov-fin';
-            if (etapa.includes('financeira')) return 'col-baixa-cpd';
-            if (etapa.includes('baixa') || etapa.includes('cpd')) return 'col-concluido';
+            if (etapa.includes('prevencao')) return 'col-aprov-log'; // Aprovou na Prev -> Vai pra Log
+            if (etapa.includes('logistica')) return 'col-aprov-fin'; // Aprovou na Log -> Vai pra Fin
+            if (etapa.includes('financeira')) return 'col-baixa-cpd'; // Aprovou no Fin -> Vai pra CPD
+            if (etapa.includes('baixa') || etapa.includes('cpd')) return 'col-concluido'; // Aprovou no CPD -> Fim
         }
+        // Se está pendente na etapa atual (status não é approve/reject ainda)
         if (etapa.includes('prevencao')) return 'col-aprov-pp';
         if (etapa.includes('logistica')) return 'col-aprov-log';
         if (etapa.includes('financeira')) return 'col-aprov-fin';
         if (etapa.includes('cpd') || etapa.includes('baixa')) return 'col-baixa-cpd';
+        
         return 'col-solicitado';
     }
 
@@ -470,8 +468,19 @@
 
         let htmlValor = '';
         if (sol.valor) {
-            const valLimpo = String(sol.valor).replace('R$', '').trim().replace(',', '.');
-            const valNum = parseFloat(valLimpo);
+            // Correção para valores PT-BR (remove ponto de milhar, troca virgula por ponto)
+            let valStr = String(sol.valor).replace('R$', '').trim();
+            
+            // Se tiver ponto e virgula (ex: 1.200,50), remove o ponto e troca a virgula
+            if (valStr.includes(',') && valStr.includes('.')) {
+                valStr = valStr.replace(/\./g, '').replace(',', '.');
+            } else if (valStr.includes(',')) {
+                // Se só tiver virgula (ex: 50,00 ou 1200,50 sem ponto)
+                valStr = valStr.replace(',', '.');
+            }
+            
+            const valNum = parseFloat(valStr);
+            
             if (!isNaN(valNum)) {
                 htmlValor = `<div class="card-price">${valNum.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</div>`;
             } else {
@@ -480,7 +489,7 @@
         }
 
         const d = sol.dataObj;
-        const dataFormatada = (d instanceof Date && !isNaN(d)) ? d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : "Data Inválida";
+        const dataFormatada = (d instanceof Date && !isNaN(d) && d.getTime() > 0) ? d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : "";
 
         let htmlComent = '';
         if (sol.comentario && sol.comentario.trim().length > 0) {
@@ -519,6 +528,7 @@
             if (unidadeSel !== 'todas' && sol.unidade !== unidadeSel) return false;
             if (dataIni || dataFim) {
                 const dSol = new Date(sol.dataObj);
+                if (isNaN(dSol.getTime())) return true; // Mostra se não tiver data, pra não sumir
                 dSol.setHours(0,0,0,0);
                 if (dataIni) {
                     const dIni = new Date(dataIni + 'T00:00:00');
@@ -535,7 +545,7 @@
         desenharQuadro(listaFiltrada);
         const msg = document.getElementById('status-msg');
         if(DADOS_MEMORIA.length > 0) {
-            msg.innerText = `Exibindo ${listaFiltrada.length} solicitações.`;
+            msg.innerText = `Exibindo ${listaFiltrada.length} de ${listaUnica.length} solicitações únicas.`;
         }
     }
 
